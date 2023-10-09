@@ -13,7 +13,7 @@ CanBusStatus CanBus::open(const string &can_name)
     // 1. Create a socket(int domain, int type, int protocol)
     if ((can_fd_ = socket(PF_CAN, SOCK_RAW, CAN_RAW)) < 0)
     {
-        perror("Error while Opening Socket");
+        std::cout << "Error while Opening Socket" << std::endl;
         return CanBusStatus::STATUS_SOCKET_CREATE_ERROR;
     }
 
@@ -29,7 +29,7 @@ CanBusStatus CanBus::open(const string &can_name)
 
     if (bind(can_fd_, (struct sockaddr *)&addr_, sizeof(addr_)) < 0)
     {
-        perror("Error in Socket bind");
+        std::cout << "Error in Socket bind" << std::endl;
         return CanBusStatus::STATUS_BIND_ERROR;
     }
 
@@ -46,7 +46,7 @@ CanBusStatus CanBus::send(const CanFrame &msg)
 
     if (write(can_fd_, &frame, sizeof(struct can_frame)) != sizeof(struct can_frame))
     {
-        perror("[Error] Write");
+        std::cout << "[Error] Write" << std::endl;
         return CanBusStatus::STATUS_WRITE_ERROR;
     }
 
@@ -78,7 +78,7 @@ CanBusStatus CanBus::recv(CanFrame &msg, int timeout)
     nbytes_ = read(can_fd_, &frame, sizeof(struct can_frame));
     if (nbytes_ < 0)
     {
-        perror("Read");
+        std::cout << "Read" << std::endl;
         return CanBusStatus::STATUS_READ_ERROR;
     }
 

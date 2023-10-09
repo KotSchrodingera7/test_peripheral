@@ -47,9 +47,11 @@ public:
         Result pcie3;
         Result sound;
         Result can;
-        Result uarts;
+        Result uart78;
+        Result uart39;
         Result spi1;
         Result spi2;
+        Result nvme;
     };
 
 private:
@@ -65,6 +67,7 @@ private:
     QString targetIp() const;
     void setTargetIp(const QString &value);
 
+    int testUart(int uart1, int uart2);
     // int testGpioPair(int first, int second);
 
     uint32_t get_value(int gpio_number);
@@ -99,9 +102,12 @@ public:
     Q_INVOKABLE int testCan();
     Q_INVOKABLE int testSpi1();
     Q_INVOKABLE int testSpi2();
-    Q_INVOKABLE int testUart();
+    Q_INVOKABLE int testUart78();
+    Q_INVOKABLE int testUart39();
+    Q_INVOKABLE int testNvme();
     Q_INVOKABLE int testPcie();
     Q_INVOKABLE int testSpeaker();
+    Q_INVOKABLE int testCamera();
     
 
     Q_INVOKABLE int init();

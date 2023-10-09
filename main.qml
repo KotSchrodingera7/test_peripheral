@@ -214,7 +214,7 @@ Window {
             TestRow {
                 id: can_test
                 title: "Can"
-                // restart.onClicked: function () { setValue(tester.testCan()) }
+                restart.onClicked: function () { setValue(tester.testCan()) }
             }
 
             TestRow {
@@ -241,6 +241,24 @@ Window {
                 id: spi2_test
                 title: "SPI2"
                 restart.onClicked: function () { setValue(tester.testSpi2()) }
+            }
+
+            TestRow {
+                id: nvme_test
+                title: "NVME"
+                restart.onClicked: function () { setValue(tester.testNvme()) }
+            }
+
+            TestRow {
+                id: uart78_test
+                title: "UART7-8"
+                restart.onClicked: function () { setValue(tester.testUart78()) }
+            }
+
+            TestRow {
+                id: uart39_test
+                title: "UART3-9"
+                restart.onClicked: function () { setValue(tester.testUart39()) }
             }
 
         }
@@ -332,7 +350,7 @@ Window {
                 }
 
                 Button {
-                    id: led_button
+                    id: camera_button
                     width: 200
                     height: 50
 
@@ -341,10 +359,10 @@ Window {
                         anchors.fill: parent
                         color: "white"
                     }
-                    text: "Подсветка"
+                    text: "Камера"
                     onClicked: function() {
                         bg_led_button.color = font_color
-                        tester.testLed()
+                        tester.testCamera()
                         buttonsRow.enabled = false
                     }
                 }
@@ -419,6 +437,9 @@ Window {
         ethernet2_test.setValue(data["ethernet2"])
         spi1_test.setValue(data["spi1"])
         spi2_test.setValue(data["spi2"])
+        nvme_test.setValue(data["nvme"])
+        uart78_test.setValue(data["uart78"])
+        uart39_test.setValue(data["uart39"])
         // tamper_test.setValue(data["tamper"])
         // usbhub_test.setValue(data["usbhub"])
 
@@ -502,6 +523,12 @@ Window {
             spi1_test.setValue(value)
         } else if (name === "spi2") {
             spi2_test.setValue(value)
+        } else if( name == "nvme" ) {
+            nvme_test.setValue(value)
+        } else if( name == "uart78" ) {
+            uart78_test.setValue(value)
+        } else if( name == "uart39" ) {
+            uart39_test.setValue(value)
         }
 
     }

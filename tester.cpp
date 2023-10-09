@@ -13,6 +13,7 @@
 // #include "face3dwiegand.h"
 #include "can_thread.h"
 #include "spi_test.h"
+#include "test_uart.h"
 
 #include <unistd.h>
 #include <iostream>
@@ -150,9 +151,11 @@ Tester::TestResult::TestResult() :
     pcie3(Result::NotTested),
     sound(Result::NotTested),
     can(Result::NotTested),
-    uarts(Result::NotTested),
+    uart78(Result::NotTested),
+    uart39(Result::NotTested),
     spi1(Result::NotTested),
-    spi2(Result::NotTested)
+    spi2(Result::NotTested),
+    nvme(Result::NotTested)
 {
 
 }
@@ -333,7 +336,26 @@ int Tester::testSpeaker()
 //        singleTestResult(name, Result::Progress);
 
         usleep(50000);
-        result = !(bool)(system("aplay /usr/local/biosmart/sounds/ok.wav > /dev/null 2>&1"));
+        result = !(bool)(system("aplay --device=hw:1,0 /usr/local/share/sample-3s.wav > /dev/null 2>&1"));
+
+        Result res = (result) ? Result::Success : Result::Failed;
+        singleTestResult(name, res);
+    });
+
+    return Result::Success;
+}
+
+int Tester::testCamera()
+{
+    QtConcurrent::run([=](){
+        bool result = false;
+        QString name = "speaker";
+//        singleTestResult(name, Result::Progress);
+
+        usleep(50000);
+        result = !(bool)(system("gst-launch-1.0 -v v4l2src device=/dev/video0 ! video/x-raw,format=NV12,width=1024,height=600,framerate=30/1 ! videoconvert ! waylandsink > /dev/null 2>&1 &"));
+        sleep(10);
+        system("killall gst-launch-1.0");
 
         Result res = (result) ? Result::Success : Result::Failed;
         singleTestResult(name, res);
@@ -349,25 +371,25 @@ int Tester::testCan()
     QString name = "can";
     singleTestResult(name, Result::Progress);
 
-    // auto status = system("test_nvme.sh > /dev/null 2>&1");
-
-    // std::cout << "STATUS = " << status << std::endl;
-
+    usleep(50000);
     system("ip link set can0 down");
+    usleep(50000);
     system("ip link set can1 down");
     usleep(50000);
 
     system("ip link set can0 type can bitrate 125000 triple-sampling on");
+    usleep(50000);
     system("ip link set can1 type can bitrate 125000 triple-sampling on");
     usleep(50000);
 
     system("ip link set can0 up");
+    usleep(50000);
     system("ip link set can1 up");
     usleep(50000);
 
     CanThread can0("can0");
     CanThread can1("can1");
-    usleep(50000);
+    sleep(1);
 
     std::thread can_recv(&CanThread::ThreadReceive, &can0);
 
@@ -424,15 +446,90 @@ int Tester::testSpi2()
     return res;
 }
 
-int Tester::testUart()
+int Tester::testNvme()
 {
-    bool result = true;
-    QString name = "Uart";
+    bool result = false;
+    QString name = "nvme";
+    auto status = system("test_nvme.sh > /dev/null 2>&1");
+
+    if( status == 0 )
+    {
+        result = true;
+    } 
     Result res = (result) ? Result::Success : Result::Failed;
     singleTestResult(name, res);
 
     return res;
 }
+
+int Tester::testUart(int uart1, int uart2)
+{
+    bool result = false;
+
+    Uart uart_dev_1, uart_dev_2;
+
+    int r_ = uart_dev_1.Open(uart1);
+    if( r_ != 0 )
+    {
+        std::cout << "UART" << uart1 << " is not open" << std::endl;
+    }
+    r_ = uart_dev_2.Open(uart2);
+
+    if( r_ != 0 )
+    {
+        std::cout << "UART" << uart2 << " is not open" << std::endl;
+    }
+
+    std::string read_data_1, read_data_2;
+
+    std::string send_data_1 = std::string("Write data").append(std::to_string(uart1)).append("-->").append(std::to_string(uart2));
+	std::string send_data_2 = std::string("Write data").append(std::to_string(uart2)).append("-->").append(std::to_string(uart1));
+
+
+    uart_dev_1.Write(send_data_1);
+	uart_dev_2.Read(read_data_2);
+
+    uart_dev_2.Write(send_data_2);
+	uart_dev_1.Read(read_data_1);
+
+	if( read_data_1 == send_data_2 && read_data_2 == send_data_1 ) 
+	{
+		result = true;
+    }
+
+    return result;
+}
+
+int Tester::testUart78()
+{
+    bool result = false;
+    QString name = "uart78";
+
+    if( testUart(7, 8) )
+    {
+        result = true;
+    }
+    Result res = (result) ? Result::Success : Result::Failed;
+    singleTestResult(name, res);
+
+    return res;
+}
+
+int Tester::testUart39()
+{
+    bool result = false;
+    QString name = "uart39";
+    
+    if( testUart(3, 9) )
+    {
+        result = true;
+    }
+    Result res = (result) ? Result::Success : Result::Failed;
+    singleTestResult(name, res);
+
+    return res;
+}
+
 int Tester::testPcie()
 {
     bool result = true;
@@ -567,13 +664,17 @@ int Tester::test()
 
     results.usb2 = static_cast<Result>(testUsb2());
     results.microsd = static_cast<Result>(testMicrosd());
-    attention();
+    // attention();
     results.gpio = static_cast<Result>(testGPIO());
     results.ethernet1 = static_cast<Result>(testEthernet1());
     results.ethernet2 = static_cast<Result>(testEthernet2());
     results.can = static_cast<Result>(testCan());
     results.spi1 = static_cast<Result>(testSpi1());
     results.spi2 = static_cast<Result>(testSpi2());
+    results.nvme = static_cast<Result>(testNvme());
+    results.uart78 = static_cast<Result>(testUart78());
+    results.uart39 = static_cast<Result>(testUart39());
+    
 
     //    results.usb3 = static_cast<Result>(testUsb3());
     //    results.lsd = static_cast<Result>(testLsd());
@@ -770,9 +871,11 @@ QVariantMap Tester::serializeResults()
     res["pci3"] = results.pcie3;
     res["sound"] = results.sound;
     res["can"] = results.can;
-    res["uart"] = results.uarts;
+    res["uart78"] = results.uart78;
+    res["uart39"] = results.uart39;
     res["spi1"] = results.spi1;
     res["spi2"] = results.spi2;
+    res["nvme"] = results.nvme;
 
     for (auto val : res.values()) {
         if (val.toInt() == Result::Success) {

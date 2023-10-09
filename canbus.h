@@ -40,12 +40,16 @@ class CanBus
 {
 public:
 	CanBus();
-	~CanBus(){};
+	~CanBus() {
+		if( can_fd_ >= 0 )
+		{
+			close(can_fd_);
+		}
+	};
 
 	CanBusStatus open(const string &can_name = "can0");
 	CanBusStatus send(const CanFrame &msg);
 	CanBusStatus recv(CanFrame &msg, int timeout = 0);
-	CanBusStatus close();
 	int canStatus = 0;
 
 private:
