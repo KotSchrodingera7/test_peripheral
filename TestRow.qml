@@ -61,7 +61,7 @@ Item {
             Layout.preferredWidth: 150
             Layout.maximumWidth: 200
 
-            font.pixelSize: 20
+            font.pixelSize: 14
             font.bold: true
             font.family: "Inter"
 
@@ -79,7 +79,7 @@ Item {
             Layout.preferredWidth: 250
             Layout.maximumWidth: 300
 
-            font.pixelSize: 20
+            font.pixelSize: 14
             font.bold: true
             font.family: "Inter"
 
@@ -98,7 +98,7 @@ Item {
             Layout.preferredWidth: 150
             Layout.maximumWidth: 200
 
-            font.pixelSize: 20
+            font.pixelSize: 14
             font.bold: true
             font.family: "Inter"
 

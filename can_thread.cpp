@@ -10,7 +10,7 @@ void CanThread::ThreadReceive()
 
         if( status == CanBusStatus::STATUS_OK )
         {
-            // std::cout << "CAN THREAD read byte with size of " << msg_.data.size() << " data: " << std::endl;
+            std::cout << "CAN THREAD read byte with size of " << msg_.data.size() << " data: " << std::endl;
 
             for( const uint8_t &byte : msg_.data )
             {

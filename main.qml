@@ -15,7 +15,7 @@ Window {
     property bool touch: touch
     property bool success: false
     property bool allow_error: true
-    property bool led_tested: false
+    property bool camera_tested: false
     property bool speaker_tested: false
 
     visible: true
@@ -177,7 +177,7 @@ Window {
             id: contentCol
             anchors.left: parent.left
             
-            spacing: 4
+            spacing: 2
             TestRow {
                 id: microsd_test
                 title: "Micro SD"
@@ -261,6 +261,24 @@ Window {
                 restart.onClicked: function () { setValue(tester.testUart39()) }
             }
 
+            TestRow {
+                id: gpio1_test
+                title: "GPIO1"
+                restart.onClicked: function () { setValue(tester.testGpio1()) }
+            }
+
+            TestRow {
+                id: gpio2_test
+                title: "GPIO2"
+                restart.onClicked: function () { setValue(tester.testGpio2()) }
+            }
+
+            TestRow {
+                id: gpio3_test
+                title: "GPIO3"
+                restart.onClicked: function () { setValue(tester.testGpio3()) }
+            }
+
         }
 
         Column {
@@ -276,20 +294,20 @@ Window {
                 spacing: 32
 
                 Rectangle {
-                    height: 100
-                    width: 200
+                    height: 50
+                    width: 100
                     color: "red"
                 }
 
                 Rectangle {
-                    height: 100
-                    width: 200
+                    height: 50
+                    width: 100
                     color: "blue"
                 }
 
                 Rectangle {
-                    height: 100
-                    width: 200
+                    height: 50
+                    width: 100
                     color: "green"
                 }
             }
@@ -301,7 +319,7 @@ Window {
                 font.bold: true
                 font.family: "Inter"
                 color: "white"
-                font.pixelSize: 28
+                font.pixelSize: 20
                 anchors.horizontalCenter: parent.horizontalCenter
             }
 
@@ -355,13 +373,13 @@ Window {
                     height: 50
 
                     background: Rectangle {
-                        id: bg_led_button
+                        id: bg_camera_button
                         anchors.fill: parent
                         color: "white"
                     }
                     text: "Камера"
                     onClicked: function() {
-                        bg_led_button.color = font_color
+                        bg_camera_button.color = font_color
                         tester.testCamera()
                         buttonsRow.enabled = false
                     }
@@ -373,7 +391,7 @@ Window {
                 width: 432
                 height: 50
                 anchors.horizontalCenter: parent.horizontalCenter
-                visible: led_tested && speaker_tested
+                visible: camera_tested && speaker_tested
                 enabled: true
 
                 text: "Завершить"
@@ -440,6 +458,10 @@ Window {
         nvme_test.setValue(data["nvme"])
         uart78_test.setValue(data["uart78"])
         uart39_test.setValue(data["uart39"])
+
+        gpio1_test.setValue(data["gpio1"])
+        gpio2_test.setValue(data["gpio2"])
+        gpio3_test.setValue(data["gpio3"])
         // tamper_test.setValue(data["tamper"])
         // usbhub_test.setValue(data["usbhub"])
 
@@ -501,12 +523,12 @@ Window {
             bg_speaker_button.color = "white"
             buttonsRow.enabled = true
             speaker_tested = true
-//            touchscreen_button.visible = led_tested && speaker_tested
-        } else if (name === "led") {
-            bg_led_button.color = "white"
-            led_tested = true
+//            touchscreen_button.visible = camera_tested && speaker_tested
+        } else if (name === "camera") {
+            bg_camera_button.color = "white"
+            camera_tested = true
             buttonsRow.enabled = true
-//            touchscreen_button.visible = led_tested && speaker_tested
+//            touchscreen_button.visible = camera_tested && speaker_tested
         } else if (name === "rtc") {
             rtc_test.setValue(value)
         } else if (name === "eeprom") {
@@ -529,7 +551,14 @@ Window {
             uart78_test.setValue(value)
         } else if( name == "uart39" ) {
             uart39_test.setValue(value)
+        } else if( name == "gpio1" ) {
+            gpio1_test.setValue(value)
+        } else if( name == "gpio2" ) {
+            gpio2_test.setValue(value)
+        } else if( name == "gpio3" ) {
+            gpio3_test.setValue(value)
         }
+
 
     }
 

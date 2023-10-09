@@ -41,6 +41,9 @@ public:
         Result lsd;
         Result touchscreen;
         Result gpio;
+        Result gpio1;
+        Result gpio2;
+        Result gpio3;
         Result ethernet1;
         Result ethernet2;
         Result pcie2;
@@ -67,7 +70,7 @@ private:
     QString targetIp() const;
     void setTargetIp(const QString &value);
 
-    int testUart(int uart1, int uart2);
+    int testUart(int uart1, int uart2, bool check);
     // int testGpioPair(int first, int second);
 
     uint32_t get_value(int gpio_number);
@@ -114,6 +117,10 @@ public:
     Q_INVOKABLE int test();
     Q_INVOKABLE int testUSB();
     Q_INVOKABLE int testGPIO();
+
+    Q_INVOKABLE int testGpio1();
+    Q_INVOKABLE int testGpio2();
+    Q_INVOKABLE int testGpio3();
 
     Q_INVOKABLE void printResults();
     Q_INVOKABLE bool saveResults();

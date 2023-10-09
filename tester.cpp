@@ -155,7 +155,10 @@ Tester::TestResult::TestResult() :
     uart39(Result::NotTested),
     spi1(Result::NotTested),
     spi2(Result::NotTested),
-    nvme(Result::NotTested)
+    nvme(Result::NotTested),
+    gpio1(Result::NotTested),
+    gpio2(Result::NotTested),
+    gpio3(Result::NotTested)
 {
 
 }
@@ -434,6 +437,7 @@ int Tester::testSpi2()
 
     SpiTest spidev_("/dev/spidev2.0");
 
+
     if( spidev_.TestTransfer() == 0 )
     {
         result = true;
@@ -462,7 +466,7 @@ int Tester::testNvme()
     return res;
 }
 
-int Tester::testUart(int uart1, int uart2)
+int Tester::testUart(int uart1, int uart2, bool check)
 {
     bool result = false;
 
@@ -505,7 +509,7 @@ int Tester::testUart78()
     bool result = false;
     QString name = "uart78";
 
-    if( testUart(7, 8) )
+    if( testUart(7, 8, true) )
     {
         result = true;
     }
@@ -519,8 +523,8 @@ int Tester::testUart39()
 {
     bool result = false;
     QString name = "uart39";
-    
-    if( testUart(3, 9) )
+
+    if( testUart(3, 9, false ) )
     {
         result = true;
     }
@@ -807,9 +811,12 @@ uint32_t Tester::gpio_pair_check(int in, int out)
 
     uint32_t value = get_value(in);
 
+    std::cout << "GPIO value in " << value << std::endl;
     set_value(out, 0);
-
+    
     value &= (!get_value(in));
+
+    std::cout << "GPIO value in after set" << value << std::endl;
 
     return value;
 }
@@ -820,17 +827,78 @@ int Tester::testGPIO()
     QString name = "gpio";
 
     uint32_t value = gpio_pair_check(39, 40);
+    std::cout << "Value in 39 out 40 = " << value << std::endl;
 
-    // std::cout << "Value = " << value << std::endl;
     value &= gpio_pair_check(40, 39);
-    // std::cout << "Value = " << value << std::endl;
+    std::cout << "Value in 40 out 39 = " << value << std::endl;
+
     value &= gpio_pair_check(36, 38);
-    // std::cout << "Value = " << value << std::endl;
+    std::cout << "Value in 36 out 38 = " << value << std::endl;
+
     value &= gpio_pair_check(38, 36);
-    // std::cout << "Value = " << value << std::endl;
+    std::cout << "Value in 38 out 36 = " << value << std::endl;
+
+    value &= gpio_pair_check(82, 73);
+    std::cout << "Value in 82 out 73 = " << value << std::endl;
+
+    value &= gpio_pair_check(74, 81);
+    std::cout << "Value in 74 out 81 = " << value << std::endl;
+
+    value &= gpio_pair_check(35, 97);
+    std::cout << "Value in 35 out 97 = " << value << std::endl;
 
     Result res = (value) ? Result::Success : Result::Failed;
     singleTestResult(name, res);
+
+    
+
+    return res;
+}
+
+int Tester::testGpio1()
+{
+    bool result = false;
+    QString name = "gpio1";
+
+    uint32_t value = gpio_pair_check(35, 93);
+    std::cout << "Value in 35 out 93 = " << value << std::endl;
+
+    Result res = (value) ? Result::Success : Result::Failed;
+    singleTestResult(name, res);
+
+    
+
+    return res;
+}
+
+int Tester::testGpio2()
+{
+    bool result = false;
+    QString name = "gpio2";
+
+    uint32_t value = gpio_pair_check(35, 92);
+    std::cout << "Value in 35 out 92 = " << value << std::endl;
+
+    Result res = (value) ? Result::Success : Result::Failed;
+    singleTestResult(name, res);
+
+    
+
+    return res;
+}
+
+int Tester::testGpio3()
+{
+    bool result = false;
+    QString name = "gpio3";
+
+    uint32_t value = gpio_pair_check(35, 34);
+    std::cout << "Value in 35 out 34 = " << value << std::endl;
+
+    Result res = (value) ? Result::Success : Result::Failed;
+    singleTestResult(name, res);
+
+    
 
     return res;
 }
@@ -876,6 +944,7 @@ QVariantMap Tester::serializeResults()
     res["spi1"] = results.spi1;
     res["spi2"] = results.spi2;
     res["nvme"] = results.nvme;
+    
 
     for (auto val : res.values()) {
         if (val.toInt() == Result::Success) {
