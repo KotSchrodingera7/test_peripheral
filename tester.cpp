@@ -158,7 +158,8 @@ Tester::TestResult::TestResult() :
     nvme(Result::NotTested),
     gpio1(Result::NotTested),
     gpio2(Result::NotTested),
-    gpio3(Result::NotTested)
+    gpio3(Result::NotTested),
+    wlan(Result::NotTested)
 {
 
 }
@@ -466,6 +467,23 @@ int Tester::testNvme()
     return res;
 }
 
+int Tester::testWlan()
+{
+    bool result = false;
+    QString name = "wlan";
+    auto status = system("test_wlan_small.sh > /dev/null 2>&1");
+
+    if( status == 0 )
+    {
+        result = true;
+    } 
+    Result res = (result) ? Result::Success : Result::Failed;
+    singleTestResult(name, res);
+
+    return res;
+}
+
+
 int Tester::testUart(int uart1, int uart2, bool check)
 {
     bool result = false;
@@ -678,6 +696,7 @@ int Tester::test()
     results.nvme = static_cast<Result>(testNvme());
     results.uart78 = static_cast<Result>(testUart78());
     results.uart39 = static_cast<Result>(testUart39());
+    results.wlan = static_cast<Result>(testWlan());
     
 
     //    results.usb3 = static_cast<Result>(testUsb3());
@@ -944,6 +963,7 @@ QVariantMap Tester::serializeResults()
     res["spi1"] = results.spi1;
     res["spi2"] = results.spi2;
     res["nvme"] = results.nvme;
+    res["wlan"] = results.wlan;
     
 
     for (auto val : res.values()) {

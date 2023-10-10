@@ -55,6 +55,7 @@ public:
         Result spi1;
         Result spi2;
         Result nvme;
+        Result wlan;
     };
 
 private:
@@ -111,7 +112,8 @@ public:
     Q_INVOKABLE int testPcie();
     Q_INVOKABLE int testSpeaker();
     Q_INVOKABLE int testCamera();
-    
+    Q_INVOKABLE int testWlan();
+
 
     Q_INVOKABLE int init();
     Q_INVOKABLE int test();

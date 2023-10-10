@@ -250,6 +250,12 @@ Window {
             }
 
             TestRow {
+                id: wlan_test
+                title: "WLAN"
+                restart.onClicked: function () { setValue(tester.testWlan()) }
+            }
+
+            TestRow {
                 id: uart78_test
                 title: "UART7-8"
                 restart.onClicked: function () { setValue(tester.testUart78()) }
@@ -456,6 +462,7 @@ Window {
         spi1_test.setValue(data["spi1"])
         spi2_test.setValue(data["spi2"])
         nvme_test.setValue(data["nvme"])
+        wlan_test.setValue(data["wlan"])
         uart78_test.setValue(data["uart78"])
         uart39_test.setValue(data["uart39"])
 
@@ -465,10 +472,10 @@ Window {
         // tamper_test.setValue(data["tamper"])
         // usbhub_test.setValue(data["usbhub"])
 
-        if ((data["failed"] === 0 && allow_error) || (data["error"] === 0 && data["failed"] === 0)) {
-            success = true
-//            statusText.text = "Success"
-//            statusText.color = "green"
+   // usbhub_test.setValue(data["usbhub"])
+        if ((data["failed"] === 0 && allow_error) || (data["error"] === 0 && data["failed"])) {
+            success = true//            statusText.text = "Success"
+    //            statusText.color = "green"
         } else {
             success = false
 //            statusText.text = "Failed"
@@ -557,10 +564,8 @@ Window {
             gpio2_test.setValue(value)
         } else if( name == "gpio3" ) {
             gpio3_test.setValue(value)
+        } else if( name == "wlan" ) {
+            wlan_test.setValue(value)
         }
-
-
     }
-
-
 }
