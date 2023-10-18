@@ -57,9 +57,9 @@ Item {
 
             Layout.fillWidth: true
             Layout.alignment: Qt.AlignRight
-            Layout.minimumWidth: 100
-            Layout.preferredWidth: 150
-            Layout.maximumWidth: 200
+            Layout.minimumWidth: 200
+            Layout.preferredWidth: 250
+            Layout.maximumWidth: 300
 
             font.pixelSize: 14
             font.bold: true
@@ -75,9 +75,9 @@ Item {
 
             Layout.fillWidth: true
             Layout.alignment: Qt.AlignRight
-            Layout.minimumWidth: 200
-            Layout.preferredWidth: 250
-            Layout.maximumWidth: 300
+            Layout.minimumWidth: 100
+            Layout.preferredWidth: 150
+            Layout.maximumWidth: 200
 
             font.pixelSize: 14
             font.bold: true

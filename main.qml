@@ -219,7 +219,7 @@ Window {
 
             TestRow {
                 id: usb2_test
-                title: "USB 2.0"
+                title: "USB"
                 restart.onClicked: function () { setValue(Tester.Progress); setValue(tester.testUsb2()) }
             }
 
@@ -269,19 +269,19 @@ Window {
 
             TestRow {
                 id: gpio1_test
-                title: "GPIO1"
+                title: "SPI2_CS0-UART3_IO_IN"
                 restart.onClicked: function () { setValue(tester.testGpio1()) }
             }
 
             TestRow {
                 id: gpio2_test
-                title: "GPIO2"
+                title: "SPI2_CS1-UART3_IO_IN"
                 restart.onClicked: function () { setValue(tester.testGpio2()) }
             }
 
             TestRow {
                 id: gpio3_test
-                title: "GPIO3"
+                title: "UART3_IO_OUT-UART3_IO_IN"
                 restart.onClicked: function () { setValue(tester.testGpio3()) }
             }
 
