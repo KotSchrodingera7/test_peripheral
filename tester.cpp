@@ -34,6 +34,7 @@
 
 bool verbose_logs = false;
 
+Q_LOGGING_CATEGORY(c_test, "TESTER")
 Q_LOGGING_CATEGORY(c_sd, "uSD")
 Q_LOGGING_CATEGORY(c_usb2, "USB2")
 Q_LOGGING_CATEGORY(c_usb3, "USB3")
@@ -455,7 +456,7 @@ int Tester::testNvme()
     {
         result = true;
     } 
-    Result res = (result) ? Result::Success : Result::Failed;
+    Result res = SetResAddedLogs(c_nvme, result);
     singleTestResult(name, res);
 
     return res;
@@ -471,7 +472,7 @@ int Tester::testWlan()
     {
         result = true;
     } 
-    Result res = (result) ? Result::Success : Result::Failed;
+    Result res = SetResAddedLogs(c_wlan, result);
     singleTestResult(name, res);
 
     return res;
@@ -487,13 +488,13 @@ int Tester::testUart(int uart1, int uart2, bool check)
     int r_ = uart_dev_1.Open(uart1);
     if( r_ != 0 )
     {
-        std::cout << "UART" << uart1 << " is not open" << std::endl;
+        return result;
     }
     r_ = uart_dev_2.Open(uart2);
 
     if( r_ != 0 )
     {
-        std::cout << "UART" << uart2 << " is not open" << std::endl;
+        return result;
     }
 
     std::string read_data_1, read_data_2;
@@ -505,12 +506,23 @@ int Tester::testUart(int uart1, int uart2, bool check)
     uart_dev_1.Write(send_data_1);
 	uart_dev_2.Read(read_data_2);
 
-    uart_dev_2.Write(send_data_2);
-	uart_dev_1.Read(read_data_1);
+    if( read_data_2 == send_data_1 ) 
+    {
+        qCInfo(c_uart) << "Data send from " << uart_dev_1.GetDev().c_str() << " equal with read data of " << uart_dev_2.GetDev().c_str();
 
-	if( read_data_1 == send_data_2 && read_data_2 == send_data_1 ) 
-	{
-		result = true;
+        uart_dev_2.Write(send_data_2);
+	    uart_dev_1.Read(read_data_1);
+        if( read_data_1 == send_data_2) 
+        {
+            qCInfo(c_uart) << "Data send from " << uart_dev_2.GetDev().c_str() << " equal with read data of " << uart_dev_1.GetDev().c_str();
+		    result = true;
+        } else 
+        {
+            qCritical(c_uart) << "Data send from " << uart_dev_2.GetDev().c_str() << " DON'T equal with read data of " << uart_dev_1.GetDev().c_str();
+        }
+
+    } else {
+        qCritical(c_uart) << "Data send from " << uart_dev_1.GetDev().c_str() << " DON'T equal with read data of " << uart_dev_2.GetDev().c_str();
     }
 
     return result;
@@ -525,7 +537,7 @@ int Tester::testUart78()
     {
         result = true;
     }
-    Result res = (result) ? Result::Success : Result::Failed;
+    Result res = SetResAddedLogs(c_uart, result);
     singleTestResult(name, res);
 
     return res;
@@ -540,7 +552,7 @@ int Tester::testUart39()
     {
         result = true;
     }
-    Result res = (result) ? Result::Success : Result::Failed;
+    Result res = SetResAddedLogs(c_uart, result);
     singleTestResult(name, res);
 
     return res;
@@ -587,7 +599,7 @@ int Tester::testEthernet1()
     }
 
     usleep(50000);
-    Result res = (result) ? Result::Success : Result::Failed;
+    Result res = SetResAddedLogs(c_eth1, result);
     singleTestResult(name, res);
     
     return res;
@@ -614,7 +626,7 @@ int Tester::testEthernet2()
     }
 
     usleep(50000);
-    Result res = (result) ? Result::Success : Result::Failed;
+    Result res = SetResAddedLogs(c_eth2, result);
     singleTestResult(name, res);
 
     
@@ -625,20 +637,21 @@ int Tester::init()
 {
     bool result = true;
 
-    std::cout << std::endl << std::endl;
-    std::cout << "Quasar motherboard testing software" << std::endl;
-    std::cout << "========================================" << std::endl;
-    std::cout << std::endl;
-    std::cout << "initialization started" << std::endl;
-    std::cout << "----------------------------------------" << std::endl;
+    qCInfo(c_test);
+    qCInfo(c_test);
+    qCInfo(c_test) << "Quasar motherboard testing software";
+    qCInfo(c_test) << "========================================";
+    qCInfo(c_test);
+    qCInfo(c_test) << "initialization started";
+    qCInfo(c_test) << "----------------------------------------";
 
-    std::cout << std::endl;
-    std::cout << "getting device ip" << std::endl;
-    std::cout << "----------------------------------------" << std::endl;
+    qCInfo(c_test);
+    qCInfo(c_test) << "getting device ip";
+    qCInfo(c_test) << "----------------------------------------";
     ip = get_current_ip();
 
     if (verbose_logs) {
-        std::cout << "test started at: " << QDateTime::currentDateTime().toString().toStdString() << std::endl;
+        // qCInfo(c_test) << "test started at: " << QDateTime::currentDateTime().toString().toStdString() << std::endl;
         QString cmd = "echo \'Test started: ";
         cmd.append(QDateTime::currentDateTime().toString());
         cmd.append("\n\'");
@@ -647,28 +660,31 @@ int Tester::init()
         system(qPrintable(cmd));
     }
 
-    std::cout << std::endl;
-    std::cout << "added gpio sysfs interfaces" << std::endl;
-    std::cout << "----------------------------------------" << std::endl;
-    // usb_hub init
-    // addOutput(70);
-    // system("echo 0 > /sys/class/gpio/gpio70/value");
+    qCInfo(c_test);
+    qCInfo(c_test) << "added gpio sysfs interfaces";
+    qCInfo(c_test) << "----------------------------------------";
 
-    // usb2 init
-    // system("echo 1 > /sys/class/gpio/gpio32/value");
-    // system("echo 1 > /sys/class/gpio/gpio35/value");
+    qCInfo(c_test);
+    qCInfo(c_test) << "initialization finished";
+    qCInfo(c_test) << "----------------------------------------";
 
-    // gpio init
-    // addInput(41);
-    // addInput(42);
-    // addInput(149);
-    // addOutput(67);
-    // addOutput(68);
-    // addOutput(69);
 
-    std::cout << std::endl;
-    std::cout << "initialization finished" << std::endl;
-    std::cout << "----------------------------------------" << std::endl;
+    gpio_definition_ = {
+
+        {GpioDefinition::GPIO0, "GPIO0"},
+        {GpioDefinition::GPIO1, "GPIO1"},
+        {GpioDefinition::GPIO2, "GPIO2"},
+        {GpioDefinition::GPIO3, "GPIO3"},
+        {GpioDefinition::UART3_RTS, "UART3_RTS"},
+        {GpioDefinition::UART3_CTS, "UART3_CTS"},
+        {GpioDefinition::UART8_CTS, "UART8_CTS"},
+        {GpioDefinition::UART8_RTS, "UART8_RTS"},
+        {GpioDefinition::UART7_CTS, "UART7_CTS"},
+        {GpioDefinition::UART7_RTS, "UART7_RTS"},
+        {GpioDefinition::SPI1_CS0, "SPI1_CS0"},
+        {GpioDefinition::SPI2_CS0, "SPI2_CS0"},
+        {GpioDefinition::SPI2_CS1, "SPI2_CS1"},
+    };
 
     return (result) ? Result::Success : Result::Failed;
 }
@@ -816,9 +832,9 @@ std::string Tester::init_gpio(int gpio_number, std::string direction, uint32_t i
     }
 }
 
-uint32_t Tester::gpio_pair_check(int in, int out)
+uint32_t Tester::gpio_pair_check(GpioDefinition in, GpioDefinition out)
 {
-    init_gpio(in, std::string("in"), 0);
+    if( init_gpio(in, std::string("in"), 0) ;
     init_gpio(out, std::string("out"), 1);
     set_value(out, 1);
 
@@ -839,26 +855,13 @@ int Tester::testGPIO()
     bool result = false;
     QString name = "gpio";
 
-    uint32_t value = gpio_pair_check(39, 40);
-    std::cout << "Value in 39 out 40 = " << value << std::endl;
-
-    value &= gpio_pair_check(40, 39);
-    std::cout << "Value in 40 out 39 = " << value << std::endl;
-
-    value &= gpio_pair_check(36, 38);
-    std::cout << "Value in 36 out 38 = " << value << std::endl;
-
-    value &= gpio_pair_check(38, 36);
-    std::cout << "Value in 38 out 36 = " << value << std::endl;
-
-    value &= gpio_pair_check(82, 73);
-    std::cout << "Value in 82 out 73 = " << value << std::endl;
-
-    value &= gpio_pair_check(74, 81);
-    std::cout << "Value in 74 out 81 = " << value << std::endl;
-
-    value &= gpio_pair_check(35, 97);
-    std::cout << "Value in 35 out 97 = " << value << std::endl;
+    uint32_t value = gpio_pair_check(GpioDefinition::GPIO2, GpioDefinition::GPIO3);
+    value &= gpio_pair_check(GpioDefinition::GPIO3, GpioDefinition::GPIO2);
+    value &= gpio_pair_check(GpioDefinition::GPIO0, GpioDefinition::GPIO1);
+    value &= gpio_pair_check(GpioDefinition::GPIO1, GpioDefinition::GPIO0);
+    value &= gpio_pair_check(GpioDefinition::UART7_CTS, GpioDefinition::UART8_RTS);
+    value &= gpio_pair_check(GpioDefinition::UART8_CTS, GpioDefinition::UART7_RTS);
+    value &= gpio_pair_check(GpioDefinition::UART3_CTS, GpioDefinition::SPI1_CS0);
 
     Result res = (value) ? Result::Success : Result::Failed;
     singleTestResult(name, res);
@@ -874,7 +877,6 @@ int Tester::testGpio1()
     QString name = "gpio1";
 
     uint32_t value = gpio_pair_check(35, 93);
-    std::cout << "Value in 35 out 93 = " << value << std::endl;
 
     Result res = (value) ? Result::Success : Result::Failed;
     singleTestResult(name, res);

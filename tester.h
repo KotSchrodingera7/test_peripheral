@@ -6,6 +6,7 @@
 #include <QVariant>
 #include <QVariantMap>
 // #include <QSerialPort>
+#include <unordered_map>
 
 class Tester : public QObject
 {
@@ -58,6 +59,22 @@ public:
         Result wlan;
     };
 
+    enum class GpioDefinition {
+        GPIO0 = 36,
+        GPIO1 = 38,
+        GPIO2 = 39,
+        GPIO3 = 40,
+        UART3_RTS = 34,
+        UART3_CTS = 35,
+        UART8_CTS = 74,
+        UART8_RTS = 73,
+        UART7_CTS = 82,
+        UART7_RTS = 81,
+        SPI1_CS0 = 97,
+        SPI2_CS0 = 93,
+        SPI2_CS1 = 92,
+    };
+
 private:
     QVariantMap serializeResults();
     void addGpio(int pin);
@@ -75,7 +92,7 @@ private:
     // int testGpioPair(int first, int second);
 
     uint32_t get_value(int gpio_number);
-    uint32_t gpio_pair_check(int in, int out);
+    uint32_t gpio_pair_check(GpioDefinition in, GpioDefinition out);
 
     std::string set_value(int gpio_number, uint32_t value);
     std::string init_gpio(int gpio_number, std::string direction, uint32_t initial_value);
@@ -84,6 +101,8 @@ private:
     QString ip;
     QString testTargetIp;
     QString  testCardNumber;
+
+    std::unordered_map<GpioDefinition, std::string> gpio_definition_;
 
 public slots:
     void receiveAction(QString info);

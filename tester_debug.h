@@ -3,6 +3,7 @@
 #include <QDebug>
 #include <QLoggingCategory>
 
+Q_DECLARE_LOGGING_CATEGORY(c_test)
 Q_DECLARE_LOGGING_CATEGORY(c_sd)
 Q_DECLARE_LOGGING_CATEGORY(c_usb2)
 Q_DECLARE_LOGGING_CATEGORY(c_usb3)

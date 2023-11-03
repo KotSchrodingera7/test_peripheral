@@ -12,7 +12,9 @@ class Uart
 public:
 
     Uart() {}
-    ~Uart() {}
+    ~Uart() {
+        close(fd_);
+    }
     int Open(int port);
 
     int Write(const std::string &data);
