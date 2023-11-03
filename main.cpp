@@ -4,6 +4,7 @@
 #include <QQmlContext>
 
 #include "tester.h"
+#include "logger.h"
 
 int main(int argc, char *argv[])
 {
@@ -13,7 +14,8 @@ int main(int argc, char *argv[])
 
     QQmlApplicationEngine engine;
     QQmlContext *ctx = engine.rootContext();
-
+    Logger::init();
+    
     Tester *tester = new Tester();
     tester->init();
 

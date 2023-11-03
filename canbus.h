@@ -14,7 +14,6 @@
 #include <linux/can.h>
 #include <linux/can/raw.h>
 
-using namespace std;
 
 struct CanFrame
 {
@@ -22,7 +21,7 @@ struct CanFrame
 	uint8_t can_dlc;
 	uint8_t flags;
 	// uint8_t data[64];
-	vector<uint8_t> data;
+	std::vector<uint8_t> data;
 };
 
 enum class CanBusStatus : uint8_t 
@@ -47,7 +46,7 @@ public:
 		}
 	};
 
-	CanBusStatus open(const string &can_name = "can0");
+	CanBusStatus open(const std::string &can_name = "can0");
 	CanBusStatus send(const CanFrame &msg);
 	CanBusStatus recv(CanFrame &msg, int timeout = 0);
 	int canStatus = 0;
@@ -57,6 +56,7 @@ private:
 	int nbytes_;
 	struct ifreq ifr_; // for saving config of interface
 	struct sockaddr_can addr_;
+	std::string name_;
 };
 
 #endif // __CANBUS_H__

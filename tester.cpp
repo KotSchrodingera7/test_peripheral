@@ -14,6 +14,7 @@
 #include "can_thread.h"
 #include "spi_test.h"
 #include "test_uart.h"
+#include "logger.h"
 
 #include <unistd.h>
 #include <iostream>
@@ -23,6 +24,7 @@
 #include <ctime>
 #include <sstream>
 #include <fstream>
+#include "tester_debug.h"
 
 //#define DEBUG
 #define MAX_BUF 100
@@ -31,6 +33,48 @@
 #define LOG "/usr/local/biosmart/quasar-test.log"
 
 bool verbose_logs = false;
+
+Q_LOGGING_CATEGORY(c_sd, "uSD")
+Q_LOGGING_CATEGORY(c_usb2, "USB2")
+Q_LOGGING_CATEGORY(c_usb3, "USB3")
+Q_LOGGING_CATEGORY(c_gpio, "GPIO")
+Q_LOGGING_CATEGORY(c_gpio1, "GPIO1")
+Q_LOGGING_CATEGORY(c_gpio2, "GPIO2")
+Q_LOGGING_CATEGORY(c_gpio3, "GPIO3")
+Q_LOGGING_CATEGORY(c_eth1, "ETHERNET0")
+Q_LOGGING_CATEGORY(c_eth2, "ETHERNET1")
+Q_LOGGING_CATEGORY(c_can, "CAN SYSTEM")
+Q_LOGGING_CATEGORY(c_can0, "CAN0")
+Q_LOGGING_CATEGORY(c_can1, "CAN1")
+Q_LOGGING_CATEGORY(c_uart, "UART system")
+Q_LOGGING_CATEGORY(c_uart7, "UART7")
+Q_LOGGING_CATEGORY(c_uart8, "UART8")
+Q_LOGGING_CATEGORY(c_uart3, "UART3")
+Q_LOGGING_CATEGORY(c_uart9, "UART9")
+Q_LOGGING_CATEGORY(c_spi, "SPI system")
+Q_LOGGING_CATEGORY(c_spi1, "SPI1")
+Q_LOGGING_CATEGORY(c_spi2, "SPI2")
+Q_LOGGING_CATEGORY(c_nvme, "NVME")
+Q_LOGGING_CATEGORY(c_wlan, "WLAN")
+Q_LOGGING_CATEGORY(c_camera, "CAMERA")
+Q_LOGGING_CATEGORY(c_speaker, "SPEAKER")
+
+
+
+Tester::Result Tester::SetResAddedLogs(const QLoggingCategory &name(), bool result, QString success, QString error) {
+    Result res = Result::Failed;
+
+    if( result ) {
+        res = Result::Success;
+        qCInfo(name) << success;
+    } else {
+        res = Result::Failed;
+        qCCritical(name) << error;
+    }
+
+
+    return res;
+}
 
 void write_log(QString &data) {
     QString cmd;
@@ -233,15 +277,9 @@ int Tester::testMicrosd()
     QFile handler(usd_path);
     result = handler.exists();
 
-    if (verbose_logs) {
-        std::cout << "========================================" << std::endl;
-        std::cout << "Test: " << name.toStdString() << std::endl;
-        std::cout << "usd path: " << usd_path.toStdString() << std::endl;
-        std::cout << "exists: " << result << std::endl;
-        std::cout << std::endl;
-    }
+    Result res = SetResAddedLogs(c_sd, result, "TEST Success", "Not find device of mmcblk0");
 
-    Result res = (result) ? Result::Success : Result::Failed;
+
     singleTestResult(name, res);
 
     return res;
@@ -259,74 +297,15 @@ int Tester::testUsb2()
 
     bool check_folder = (bool)system("test -d /media/rootfs");
 
-    std::cout << "CHECK FOLDER " << check_folder << std::endl;
-
     if( check_folder )
     {
         system("mkdir /media/rootfs");
     }
 
-    result = (bool)system("mount /dev/sda1 /media/rootfs");
-
-
-    str_res_second = line_cmd("lsusb | wc -l");
-
-    Result res = (!result) ? Result::Success : Result::Failed;
+    result = !(bool)system("mount /dev/sda1 /media/rootfs");
+    Result res = SetResAddedLogs(c_usb2, result, "TEST Success", "Not mount file system");
 
     system("umount /media/rootfs");
-    singleTestResult(name, res);
-
-    return res;
-}
-
-int Tester::testUsb3()
-{
-    bool result = false;
-    QString name = "usb3";
-    singleTestResult(name, Result::Progress);
-
-    QString str_res;
-
-    // system("echo 0 > /sys/class/gpio/gpio54/value");
-    sleep(2);
-    str_res = line_cmd("lsusb | wc -l");
-
-    // system("echo 1 > /sys/class/gpio/gpio54/value");
-    sleep(10);
-
-    result = (str_res != line_cmd("lsusb | wc -l"));
-
-    Result res = (result) ? Result::Success : Result::Failed;
-    singleTestResult(name, res);
-
-    return res;
-}
-
-int Tester::testLsd()
-{
-    bool result = true;
-    QString name = "lsd";
-    singleTestResult(name, Result::Progress);
-
-    // QFile handler("/sys/class/gpio/gpio158/value");
-    // result = handler.exists();
-
-    Result res = (result) ? Result::Success : Result::Failed;
-    singleTestResult(name, res);
-
-    return res;
-}
-
-int Tester::testTouchscreen()
-{
-    bool result = true;
-    QString name = "touchscreen";
-    singleTestResult(name, Result::Progress);
-
-//    QFile handler("/sys/class/gpio/gpio52/value");
-//    result = !handler.exists();
-
-    Result res = (result) ? Result::Success : Result::Failed;
     singleTestResult(name, res);
 
     return res;
@@ -342,7 +321,8 @@ int Tester::testSpeaker()
         usleep(50000);
         result = !(bool)(system("aplay --device=hw:1,0 /usr/local/share/sample-3s.wav > /dev/null 2>&1"));
 
-        Result res = (result) ? Result::Success : Result::Failed;
+        Result res = SetResAddedLogs(c_speaker, result, "System execuition success", "System execuition failed");
+
         singleTestResult(name, res);
     });
 
@@ -361,7 +341,8 @@ int Tester::testCamera()
         sleep(10);
         system("killall gst-launch-1.0");
 
-        Result res = (result) ? Result::Success : Result::Failed;
+        Result res = SetResAddedLogs(c_camera, result, "System execuition success", "System execuition failed");
+
         singleTestResult(name, res);
     });
 
@@ -376,19 +357,32 @@ int Tester::testCan()
     singleTestResult(name, Result::Progress);
 
     usleep(50000);
-    system("ip link set can0 down");
-    usleep(50000);
-    system("ip link set can1 down");
-    usleep(50000);
-
-    system("ip link set can0 type can bitrate 125000 triple-sampling on");
-    usleep(50000);
-    system("ip link set can1 type can bitrate 125000 triple-sampling on");
+    if( system("ip link set can0 down > /dev/null 2>&1") ) {
+        qCWarning(c_can0) << "Link didn't set to down";
+    }
     usleep(50000);
 
-    system("ip link set can0 up");
+    if( system("ip link set can1 down > /dev/null 2>&1") ) {
+        qCWarning(c_can1) << "Link didn't set to down";
+    }
     usleep(50000);
-    system("ip link set can1 up");
+
+    if( system("ip link set can0 type can bitrate 125000 triple-sampling on > /dev/null 2>&1") ) {
+        qCWarning(c_can0) << "Set bitrate with triple-sampling error";
+    }
+    usleep(50000);
+    if ( system("ip link set can1 type can bitrate 125000 triple-sampling on > /dev/null 2>&1") ) {
+        qCWarning(c_can1) << "Set bitrate with triple-sampling error";
+    }
+    usleep(50000);
+
+    if( system("ip link set can0 up > /dev/null 2>&1") ) {
+        qCWarning(c_can0) << "Link didn't set to up";
+    }
+    usleep(50000);
+    if( system("ip link set can1 up") ) {
+        qCWarning(c_can1) << "Link didn't set to up";
+    }
     usleep(50000);
 
     CanThread can0("can0");
@@ -407,8 +401,8 @@ int Tester::testCan()
         result = true;
     }
 
-
-    Result res = (result) ? Result::Success : Result::Failed;
+    
+    Result res = SetResAddedLogs(c_can0, result, "TEST Success", "Read data and write data don't equal");
     singleTestResult(name, res);
 
     return res;
@@ -425,7 +419,7 @@ int Tester::testSpi1()
         result = true;
     }
 
-    Result res = (result) ? Result::Success : Result::Failed;
+    Result res = SetResAddedLogs(c_spi1, result);
     singleTestResult(name, res);
 
     return res;
@@ -444,7 +438,7 @@ int Tester::testSpi2()
         result = true;
     }
 
-    Result res = (result) ? Result::Success : Result::Failed;
+    Result res = SetResAddedLogs(c_spi2, result);
     singleTestResult(name, res);
 
 

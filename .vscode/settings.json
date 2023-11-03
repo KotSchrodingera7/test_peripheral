@@ -13,6 +13,7 @@
         "utility": "cpp",
         "variant": "cpp",
         "istream": "cpp",
-        "typeinfo": "cpp"
+        "typeinfo": "cpp",
+        "vector": "cpp"
     }
 }

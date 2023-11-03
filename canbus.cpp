@@ -3,17 +3,18 @@
 #include <sys/timerfd.h>
 
 #include "canbus.h"
+#include "tester_debug.h"
 
 CanBus::CanBus()
 {
 }
 
-CanBusStatus CanBus::open(const string &can_name)
+CanBusStatus CanBus::open(const std::string &can_name)
 {
     // 1. Create a socket(int domain, int type, int protocol)
     if ((can_fd_ = socket(PF_CAN, SOCK_RAW, CAN_RAW)) < 0)
     {
-        std::cout << "Error while Opening Socket" << std::endl;
+        qCCritical(c_can) << can_name.c_str() << " Error while Opening Socket";
         return CanBusStatus::STATUS_SOCKET_CREATE_ERROR;
     }
 
@@ -29,9 +30,11 @@ CanBusStatus CanBus::open(const string &can_name)
 
     if (bind(can_fd_, (struct sockaddr *)&addr_, sizeof(addr_)) < 0)
     {
-        std::cout << "Error in Socket bind" << std::endl;
+        qCCritical(c_can) << can_name.c_str() << " Error in Socket bind";
         return CanBusStatus::STATUS_BIND_ERROR;
     }
+
+    name_ = std::move(can_name);
 
     return CanBusStatus::STATUS_OK;
 }
@@ -46,7 +49,7 @@ CanBusStatus CanBus::send(const CanFrame &msg)
 
     if (write(can_fd_, &frame, sizeof(struct can_frame)) != sizeof(struct can_frame))
     {
-        std::cout << "[Error] Write" << std::endl;
+        qCCritical(c_can) << name_.c_str()  << "[Error] Write";
         return CanBusStatus::STATUS_WRITE_ERROR;
     }
 
@@ -71,6 +74,7 @@ CanBusStatus CanBus::recv(CanFrame &msg, int timeout)
         ret = select(can_fd_ + 1, &fds, NULL, NULL, &tv);
         if (0 == ret)
         { // timeout
+            qCWarning(c_can) << name_.c_str() << "Select timeout";
             return CanBusStatus::STATUS_READ_TIMEOUT;
         }
     }
@@ -78,7 +82,7 @@ CanBusStatus CanBus::recv(CanFrame &msg, int timeout)
     nbytes_ = read(can_fd_, &frame, sizeof(struct can_frame));
     if (nbytes_ < 0)
     {
-        std::cout << "Read" << std::endl;
+        qCCritical(c_can) << name_.c_str() << " Read Error";
         return CanBusStatus::STATUS_READ_ERROR;
     }
 

@@ -93,14 +93,12 @@ public:
 
     Tester* tester();
     QString addr();
+    Result SetResAddedLogs(const QLoggingCategory &name(), bool result, QString success = "TEST Success", QString error = "TEST Failed");
 
     // Q_PROPERTY(QString cardNumber READ cardNumber WRITE setCardNumber NOTIFY cardNumberChanged)
     // Q_PROPERTY(QString targetIp READ targetIp WRITE setTargetIp NOTIFY targetIpChanged)
     Q_INVOKABLE int testMicrosd();
     Q_INVOKABLE int testUsb2();
-    Q_INVOKABLE int testUsb3();
-    Q_INVOKABLE int testLsd();
-    Q_INVOKABLE int testTouchscreen();
     Q_INVOKABLE int testEthernet1();
     Q_INVOKABLE int testEthernet2();
     Q_INVOKABLE int testCan();
@@ -138,21 +136,5 @@ signals:
     void targetIpChanged(QString value);
 
 };
-
-// class SerialReader : public QSerialPort
-// {
-//     Q_OBJECT
-
-// public:
-//     SerialReader();
-//     bool Init(QString file);
-//     QByteArray GetData();
-
-// public slots:
-//     void ReadSerial();
-
-// private:
-//     QByteArray data_;
-// };
 
 #endif // TESTER_H

@@ -2,6 +2,7 @@
 #define __CAN_THREAD_H__
 
 #include "canbus.h"
+#include "tester_debug.h"
 
 #include <string>
 #include <memory>
@@ -11,6 +12,8 @@ class CanThread
     std::shared_ptr<CanBus> device_;
 
     CanFrame msg_;
+
+    std::string name_;
 public:
     CanThread(const std::string &name) 
     {
@@ -18,8 +21,9 @@ public:
 
         if( device_ )
         {
-            std::cout << "CAN: device is open with name of " << name << std::endl;
+            qInfo(c_can) << name.c_str() << " CAN: device is open";
             device_->open(name);
+            name_ = std::move(name);
         }
     };
     ~CanThread() = default;
