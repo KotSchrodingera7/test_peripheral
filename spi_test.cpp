@@ -69,7 +69,6 @@ int SpiTest::TestTransfer()
     ret = ioctl(fd_, SPI_IOC_WR_MAX_SPEED_HZ, &scratch32);
     if(ret != 0) {
         qCCritical(c_spi) << dev_.c_str() << " Could not write the SPI max speed...";
-        std::cout << "\r\n" << std::endl;
         close(fd_);
         return -1;
     }
@@ -77,7 +76,6 @@ int SpiTest::TestTransfer()
     ret = ioctl(fd_, SPI_IOC_MESSAGE(1), &trx);
     if(ret != 0) {
         qCCritical(c_spi) << dev_.c_str() << " SPI transfer returned ...";
-        std::cout << "\r\n" << ret << std::endl;
     }
 
     if( rx_buffer == tx_buffer ) 

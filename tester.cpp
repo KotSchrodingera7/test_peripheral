@@ -304,10 +304,10 @@ int Tester::testUsbC()
         system("mkdir /media/fatfs");
     }
 
-    QString cmd = "mount /dev/sda /media/fatfs/";
+    QString cmd = "mount /dev/sda /media/fatfs/ > /dev/null 2>&1";
     int sys = system(qPrintable(cmd));
     if (sys) {
-        std::cout << "SYSTEM MOUNT FAIL" << std::endl;
+        qCCritical(c_usbc) << "SYSTEM MOUNT FAIL";
         result = !sys;
     } else {
         QString res;
@@ -351,7 +351,7 @@ int Tester::testUsbC()
 
     Result res = SetResAddedLogs(c_usbc, result, "TEST Success", "Not mount file system");
 
-    system("umount /media/fatfs");
+    system("umount /media/fatfs > /dev/null 2>&1");
     singleTestResult(name, res);
 
     return res;
@@ -362,7 +362,6 @@ int Tester::testSpeaker()
     QtConcurrent::run([=](){
         bool result = false;
         QString name = "speaker";
-//        singleTestResult(name, Result::Progress);
 
         usleep(50000);
         result = !(bool)(system("aplay --device=hw:1,0 /usr/local/share/sample-3s.wav > /dev/null 2>&1"));
@@ -380,7 +379,6 @@ int Tester::testCamera()
     QtConcurrent::run([=](){
         bool result = false;
         QString name = "speaker";
-//        singleTestResult(name, Result::Progress);
 
         usleep(50000);
         result = !(bool)(system("gst-launch-1.0 -v v4l2src device=/dev/video0 ! video/x-raw,format=NV12,width=1024,height=600,framerate=30/1 ! videoconvert ! waylandsink > /dev/null 2>&1 &"));
@@ -816,12 +814,12 @@ uint32_t Tester::get_value(int gpio_number)
             return std::atoi(string_value.c_str());
         }
         {
-            std::cout << "ifstream not open" << std::endl;
+            qCWarning(c_gpio) << "ifstream not open";
             return value;
         }
     } else
     {
-        std::cout << "Do not access to gpio" << std::endl;
+        qCWarning(c_gpio) << "Do not access to gpio";
     }
 
     return value;

@@ -25,7 +25,7 @@ void Uart::run(void)
 
     if( Read(data) == 0 ) 
     {
-        std::cout << "Read from " << dev_ << " " << data << std::endl;
+        // std::cout << "Read from " << dev_ << " " << data << std::endl;
     }
 }
 
