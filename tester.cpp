@@ -21,8 +21,10 @@
 #include <stdexcept>
 #include <stdio.h>
 #include <string>
+#include <string_view>
 #include <ctime>
 #include <sstream>
+#include <istream>
 #include <fstream>
 #include "tester_debug.h"
 
@@ -36,7 +38,7 @@ bool verbose_logs = false;
 
 Q_LOGGING_CATEGORY(c_test, "TESTER")
 Q_LOGGING_CATEGORY(c_sd, "uSD")
-Q_LOGGING_CATEGORY(c_usb2, "USB2")
+Q_LOGGING_CATEGORY(c_usbc, "USB-C")
 Q_LOGGING_CATEGORY(c_usb3, "USB3")
 Q_LOGGING_CATEGORY(c_gpio, "GPIO")
 Q_LOGGING_CATEGORY(c_gpio1, "GPIO1")
@@ -180,12 +182,11 @@ QString line_cmd(QString cmd) {
 
 Tester::Tester(QObject *parent) : QObject(parent)
 {
-
 }
 
 Tester::TestResult::TestResult() :
     microsd(Result::NotTested),
-    usb2(Result::NotTested),
+    usbc(Result::NotTested),
     usb3(Result::NotTested),
     lsd(Result::NotTested),
     touchscreen(Result::NotTested),
@@ -286,27 +287,71 @@ int Tester::testMicrosd()
     return res;
 }
 
-int Tester::testUsb2()
+int Tester::testUsbC()
 {
     bool result = false;
-    QString name = "usb2";
+    QString name = "usb-c";
     singleTestResult(name, Result::Progress);
 
     QString str_res_first;
     QString str_res_second;
     QString str_res_third;
 
-    bool check_folder = (bool)system("test -d /media/rootfs");
+    bool check_folder = (bool)system("test -d /media/fatfs");
 
     if( check_folder )
     {
-        system("mkdir /media/rootfs");
+        system("mkdir /media/fatfs");
     }
 
-    result = !(bool)system("mount /dev/sda1 /media/rootfs");
-    Result res = SetResAddedLogs(c_usb2, result, "TEST Success", "Not mount file system");
+    QString cmd = "mount /dev/sda /media/fatfs/";
+    int sys = system(qPrintable(cmd));
+    if (sys) {
+        std::cout << "SYSTEM MOUNT FAIL" << std::endl;
+        result = !sys;
+    } else {
+        QString res;
+        QString cmd = "dd if=/dev/urandom of=/media/fatfs/image.img bs=8M count=20 status=progress &> speed";
+        QString ans;
+        QFile cur("speed");
 
-    system("umount /media/rootfs");
+        sys = system(qPrintable(cmd));
+        if( !sys ) {
+            if (cur.open(QIODevice::ReadOnly)) {
+                QByteArray data = cur.readAll();
+                res = QString(data);
+                if (res.contains("copied")) {
+                    std::istringstream input(res.toStdString());
+
+                    for (std::string line; getline(input, line);) {
+                        size_t pos = line.find(" bytes");
+
+                        if( pos != std::string::npos ) {
+                            int bytes_ = std::atoi((std::string{line.begin(), line.begin() + pos}).c_str());
+
+                            if( bytes_ == 1024*1024*8*20 ) {
+                                std::string_view str_ = line.substr(line.find("s, "));
+
+                                str_.remove_prefix(2);
+                                str_.remove_prefix(std::min(str_.find_first_not_of(" "), str_.size()));
+                                str_.remove_suffix(str_.size() - str_.find("MB/"));
+                                double speed_ = std::atof(str_.data());
+                                result = true;
+                                if( speed_ < 60 ) {
+                                    result = false;
+                                }
+                            }
+                            
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    Result res = SetResAddedLogs(c_usbc, result, "TEST Success", "Not mount file system");
+
+    system("umount /media/fatfs");
     singleTestResult(name, res);
 
     return res;
@@ -403,7 +448,7 @@ int Tester::testCan()
     }
 
     
-    Result res = SetResAddedLogs(c_can0, result, "TEST Success", "Read data and write data don't equal");
+    Result res = SetResAddedLogs(c_can, result, "TEST Success", " TEST FAIL : Read data and write data don't equal");
     singleTestResult(name, res);
 
     return res;
@@ -639,7 +684,7 @@ int Tester::init()
 
     qCInfo(c_test);
     qCInfo(c_test);
-    qCInfo(c_test) << "Quasar motherboard testing software";
+    qCInfo(c_test) << "Diasom RK3568 testing software";
     qCInfo(c_test) << "========================================";
     qCInfo(c_test);
     qCInfo(c_test) << "initialization started";
@@ -694,7 +739,7 @@ int Tester::test()
     QDateTime now;
     results.date = now.date().toString();
 
-    results.usb2 = static_cast<Result>(testUsb2());
+    results.usbc = static_cast<Result>(testUsbC());
     results.microsd = static_cast<Result>(testMicrosd());
     // attention();
     results.gpio = static_cast<Result>(testGPIO());
@@ -834,18 +879,34 @@ std::string Tester::init_gpio(int gpio_number, std::string direction, uint32_t i
 
 uint32_t Tester::gpio_pair_check(GpioDefinition in, GpioDefinition out)
 {
-    if( init_gpio(in, std::string("in"), 0) ;
-    init_gpio(out, std::string("out"), 1);
-    set_value(out, 1);
+    if( init_gpio(static_cast<int>(in), std::string("in"), 0).size() > 0 ) {
+        qCCritical(c_gpio) << "Error init " << gpio_definition_[in].c_str() << " like input";
+        return 0;
+    }
+    if( init_gpio(static_cast<int>(out), std::string("out"), 1).size() > 0 ) {
+        qCCritical(c_gpio) << "Error init " << gpio_definition_[out].c_str() << " like output";
+        return 0;
+    }
+    if ( set_value(static_cast<int>(out), 1).size() > 0 ) {
+        qCCritical(c_gpio) << "Error set logical 1 out " << gpio_definition_[out].c_str();
+    } else {
+        qCInfo(c_gpio) << "Set logical 1 success out " << gpio_definition_[out].c_str();
+    }
 
-    uint32_t value = get_value(in);
+    uint32_t value = get_value(static_cast<int>(in));
+    qCInfo(c_gpio) << "Getting value  " << value << " in " << gpio_definition_[in].c_str();
+    set_value(static_cast<int>(out), 0);
 
-    std::cout << "GPIO value in " << value << std::endl;
-    set_value(out, 0);
+    if ( set_value(static_cast<int>(out), 0).size() > 0 ) {
+        qCCritical(c_gpio) << "Error set logical 0 out " << gpio_definition_[out].c_str();
+    } else {
+        qCInfo(c_gpio) << "Set logical 0 success out " << gpio_definition_[out].c_str();
+    }
     
-    value &= (!get_value(in));
+    uint32_t value_0 = get_value(static_cast<int>(in));
+    value &= (!value_0);
 
-    std::cout << "GPIO value in after set" << value << std::endl;
+    qCInfo(c_gpio) << "Getting value  " << value_0 << " in " << gpio_definition_[in].c_str();
 
     return value;
 }
@@ -861,62 +922,93 @@ int Tester::testGPIO()
     value &= gpio_pair_check(GpioDefinition::GPIO1, GpioDefinition::GPIO0);
     value &= gpio_pair_check(GpioDefinition::UART7_CTS, GpioDefinition::UART8_RTS);
     value &= gpio_pair_check(GpioDefinition::UART8_CTS, GpioDefinition::UART7_RTS);
+
+
+    set_value(static_cast<int>(GpioDefinition::SPI1_CS0), 0);
+    set_value(static_cast<int>(GpioDefinition::SPI2_CS0), 0);
+    set_value(static_cast<int>(GpioDefinition::SPI2_CS1), 0);
+    set_value(static_cast<int>(GpioDefinition::UART3_RTS), 0);
+    usleep(50000);
     value &= gpio_pair_check(GpioDefinition::UART3_CTS, GpioDefinition::SPI1_CS0);
 
-    Result res = (value) ? Result::Success : Result::Failed;
+    usleep(50000);
+
+    set_value(static_cast<int>(GpioDefinition::SPI1_CS0), 0);
+    set_value(static_cast<int>(GpioDefinition::SPI2_CS0), 0);
+    set_value(static_cast<int>(GpioDefinition::SPI2_CS1), 0);
+    set_value(static_cast<int>(GpioDefinition::UART3_RTS), 0);
+    usleep(50000);
+    value &= gpio_pair_check(GpioDefinition::UART3_CTS, GpioDefinition::SPI2_CS0);
+
+    usleep(50000);
+
+    set_value(static_cast<int>(GpioDefinition::SPI1_CS0), 0);
+    set_value(static_cast<int>(GpioDefinition::SPI2_CS0), 0);
+    set_value(static_cast<int>(GpioDefinition::SPI2_CS1), 0);
+    set_value(static_cast<int>(GpioDefinition::UART3_RTS), 0);
+    usleep(50000);
+    value &= gpio_pair_check(GpioDefinition::UART3_CTS, GpioDefinition::SPI2_CS1);
+
+    usleep(50000);
+
+    set_value(static_cast<int>(GpioDefinition::SPI1_CS0), 0);
+    set_value(static_cast<int>(GpioDefinition::SPI2_CS0), 0);
+    set_value(static_cast<int>(GpioDefinition::SPI2_CS1), 0);
+    set_value(static_cast<int>(GpioDefinition::UART3_RTS), 0);
+    usleep(50000);
+    value &= gpio_pair_check(GpioDefinition::UART3_CTS, GpioDefinition::UART3_RTS);
+
+    Result res = SetResAddedLogs(c_gpio, value);
     singleTestResult(name, res);
-
-    
-
     return res;
 }
 
-int Tester::testGpio1()
-{
-    bool result = false;
-    QString name = "gpio1";
+// int Tester::testGpio1()
+// {
+//     bool result = false;
+//     QString name = "gpio1";
 
-    uint32_t value = gpio_pair_check(35, 93);
+//     uint32_t value = 0;//gpio_pair_check(35, 93);
 
-    Result res = (value) ? Result::Success : Result::Failed;
-    singleTestResult(name, res);
-
-    
-
-    return res;
-}
-
-int Tester::testGpio2()
-{
-    bool result = false;
-    QString name = "gpio2";
-
-    uint32_t value = gpio_pair_check(35, 92);
-    std::cout << "Value in 35 out 92 = " << value << std::endl;
-
-    Result res = (value) ? Result::Success : Result::Failed;
-    singleTestResult(name, res);
+//     Result res = (value) ? Result::Success : Result::Failed;
+//     singleTestResult(name, res);
 
     
 
-    return res;
-}
+//     return res;
+// }
 
-int Tester::testGpio3()
-{
-    bool result = false;
-    QString name = "gpio3";
+// int Tester::testGpio2()
+// {
+//     bool result = false;
+//     QString name = "gpio2";
 
-    uint32_t value = gpio_pair_check(35, 34);
-    std::cout << "Value in 35 out 34 = " << value << std::endl;
+//     uint32_t value = 0;//gpio_pair_check(35, 92);
+//     std::cout << "Value in 35 out 92 = " << value << std::endl;
 
-    Result res = (value) ? Result::Success : Result::Failed;
-    singleTestResult(name, res);
+//     Result res = (value) ? Result::Success : Result::Failed;
+//     singleTestResult(name, res);
 
     
 
-    return res;
-}
+//     return res;
+// }
+
+// int Tester::testGpio3()
+// {
+//     bool result = false;
+//     QString name = "gpio3";
+
+//     uint32_t value = 0;//gpio_pair_check(35, 34);
+//     std::cout << "Value in 35 out 34 = " << value << std::endl;
+
+//     Result res = (value) ? Result::Success : Result::Failed;
+//     singleTestResult(name, res);
+
+    
+
+//     return res;
+// }
 
 void Tester::printResults()
 {
@@ -943,7 +1035,7 @@ QVariantMap Tester::serializeResults()
     res["date"] = results.date;
 
     res["microsd"] = results.microsd;
-    res["usb2"] = results.usb2;
+    res["usbc"] = results.usbc;
     res["usb3"] = results.usb3;
     res["lsd"] = results.lsd;
     res["touchscreen"] = results.touchscreen;

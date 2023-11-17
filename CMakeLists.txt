@@ -7,7 +7,7 @@ project(tester)
 
 set(CMAKE_TOOLCHAIN_FILE /home/alex/Projects/macro_group/bsp/output/ds-rk3568-evb/host/share/buildroot/toolchain.cmake)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(Qt5 COMPONENTS Core Quick REQUIRED)

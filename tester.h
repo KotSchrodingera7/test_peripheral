@@ -37,7 +37,7 @@ public:
         int error;
 
         Result microsd;
-        Result usb2;
+        Result usbc;
         Result usb3;
         Result lsd;
         Result touchscreen;
@@ -117,7 +117,7 @@ public:
     // Q_PROPERTY(QString cardNumber READ cardNumber WRITE setCardNumber NOTIFY cardNumberChanged)
     // Q_PROPERTY(QString targetIp READ targetIp WRITE setTargetIp NOTIFY targetIpChanged)
     Q_INVOKABLE int testMicrosd();
-    Q_INVOKABLE int testUsb2();
+    Q_INVOKABLE int testUsbC();
     Q_INVOKABLE int testEthernet1();
     Q_INVOKABLE int testEthernet2();
     Q_INVOKABLE int testCan();
@@ -137,9 +137,9 @@ public:
     Q_INVOKABLE int testUSB();
     Q_INVOKABLE int testGPIO();
 
-    Q_INVOKABLE int testGpio1();
-    Q_INVOKABLE int testGpio2();
-    Q_INVOKABLE int testGpio3();
+    // Q_INVOKABLE int testGpio1();
+    // Q_INVOKABLE int testGpio2();
+    // Q_INVOKABLE int testGpio3();
 
     Q_INVOKABLE void printResults();
     Q_INVOKABLE bool saveResults();

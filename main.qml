@@ -218,9 +218,9 @@ Window {
             }
 
             TestRow {
-                id: usb2_test
-                title: "USB"
-                restart.onClicked: function () { setValue(Tester.Progress); setValue(tester.testUsb2()) }
+                id: usbc_test
+                title: "USB-C"
+                restart.onClicked: function () { setValue(Tester.Progress); setValue(tester.testUsbC()) }
             }
 
             TestRow {
@@ -267,23 +267,23 @@ Window {
                 restart.onClicked: function () { setValue(tester.testUart39()) }
             }
 
-            TestRow {
-                id: gpio1_test
-                title: "SPI2_CS0-UART3_IO_IN"
-                restart.onClicked: function () { setValue(tester.testGpio1()) }
-            }
+            // TestRow {
+            //     id: gpio1_test
+            //     title: "SPI2_CS0-UART3_IO_IN"
+            //     restart.onClicked: function () { setValue(tester.testGpio1()) }
+            // }
 
-            TestRow {
-                id: gpio2_test
-                title: "SPI2_CS1-UART3_IO_IN"
-                restart.onClicked: function () { setValue(tester.testGpio2()) }
-            }
+            // TestRow {
+            //     id: gpio2_test
+            //     title: "SPI2_CS1-UART3_IO_IN"
+            //     restart.onClicked: function () { setValue(tester.testGpio2()) }
+            // }
 
-            TestRow {
-                id: gpio3_test
-                title: "UART3_IO_OUT-UART3_IO_IN"
-                restart.onClicked: function () { setValue(tester.testGpio3()) }
-            }
+            // TestRow {
+            //     id: gpio3_test
+            //     title: "UART3_IO_OUT-UART3_IO_IN"
+            //     restart.onClicked: function () { setValue(tester.testGpio3()) }
+            // }
 
         }
 
@@ -441,7 +441,7 @@ Window {
         var data = results
 
         microsd_test.setValue(data["microsd"])
-        usb2_test.setValue(data["usb2"])
+        usbc_test.setValue(data["usbc"])
         usb3_test.setValue(data["usb3"])
         // lsd_test.setValue(data["lsd"])
         touchscreen_test.setValue(data["touchscreen"])
@@ -466,9 +466,9 @@ Window {
         uart78_test.setValue(data["uart78"])
         uart39_test.setValue(data["uart39"])
 
-        gpio1_test.setValue(data["gpio1"])
-        gpio2_test.setValue(data["gpio2"])
-        gpio3_test.setValue(data["gpio3"])
+        // gpio1_test.setValue(data["gpio1"])
+        // gpio2_test.setValue(data["gpio2"])
+        // gpio3_test.setValue(data["gpio3"])
         // tamper_test.setValue(data["tamper"])
         // usbhub_test.setValue(data["usbhub"])
 
@@ -495,8 +495,8 @@ Window {
 
         if (name === "microsd") {
             microsd_test.setValue(value)
-        } else if (name === "usb2") {
-            usb2_test.setValue(value)
+        } else if (name === "usbc") {
+            usbc_test.setValue(value)
         } else if (name === "usb3") {
             usb3_test.setValue(value)
         } else if (name === "lsd") {
@@ -558,12 +558,12 @@ Window {
             uart78_test.setValue(value)
         } else if( name == "uart39" ) {
             uart39_test.setValue(value)
-        } else if( name == "gpio1" ) {
-            gpio1_test.setValue(value)
-        } else if( name == "gpio2" ) {
-            gpio2_test.setValue(value)
-        } else if( name == "gpio3" ) {
-            gpio3_test.setValue(value)
+        // } else if( name == "gpio1" ) {
+        //     gpio1_test.setValue(value)
+        // } else if( name == "gpio2" ) {
+        //     gpio2_test.setValue(value)
+        // } else if( name == "gpio3" ) {
+        //     gpio3_test.setValue(value)
         } else if( name == "wlan" ) {
             wlan_test.setValue(value)
         }

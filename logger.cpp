@@ -44,7 +44,7 @@ void Logger::clean() {
 
 void Logger::messageOutput(QtMsgType type, const QMessageLogContext& context, const QString& msg) {
 
-	QString log = QObject::tr("%1 | %2 | %3 | %4 | %5 | %6\n").
+	QString log = QObject::tr("%1 | %2 | %3 | %4 | %5 | %6 | %7\n").
 		arg(QDateTime::currentDateTime().toString("dd-MM-yyyy hh:mm:ss")).
 		arg(Logger::contextNames.value(type)).
 		arg(context.line).
@@ -54,6 +54,7 @@ void Logger::messageOutput(QtMsgType type, const QMessageLogContext& context, co
 			section('(', -2, -2).		// Function name only
 			section(' ', -1).
 			section(':', -1)).
+		arg(context.category).
 		arg(msg);
 
 	logFile->write(log.toLocal8Bit());
