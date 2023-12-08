@@ -37,6 +37,7 @@ public:
         int error;
 
         Result microsd;
+        Result emmc;
         Result usbc;
         Result usb3;
         Result lsd;
@@ -45,8 +46,7 @@ public:
         Result gpio1;
         Result gpio2;
         Result gpio3;
-        Result ethernet1;
-        Result ethernet2;
+        Result ethernet;
         Result pcie2;
         Result pcie3;
         Result sound;
@@ -76,6 +76,8 @@ public:
     };
 
 private:
+    bool CheckSpeedUsb(const QLoggingCategory &name(), QString cmd, int limit);
+    bool CheckNumberUsb(int number);
     QVariantMap serializeResults();
     void addGpio(int pin);
     void addOutput(int pin);
@@ -116,10 +118,11 @@ public:
 
     // Q_PROPERTY(QString cardNumber READ cardNumber WRITE setCardNumber NOTIFY cardNumberChanged)
     // Q_PROPERTY(QString targetIp READ targetIp WRITE setTargetIp NOTIFY targetIpChanged)
+    Q_INVOKABLE int testEmmc();
     Q_INVOKABLE int testMicrosd();
     Q_INVOKABLE int testUsbC();
-    Q_INVOKABLE int testEthernet1();
-    Q_INVOKABLE int testEthernet2();
+    Q_INVOKABLE int testUsb3();
+    Q_INVOKABLE int testEthernet();
     Q_INVOKABLE int testCan();
     Q_INVOKABLE int testSpi1();
     Q_INVOKABLE int testSpi2();

@@ -76,19 +76,6 @@ Window {
                 Layout.alignment: Qt.AlignJustify
 
                 Label {
-                    id: addrLabel
-
-                    font.capitalization: Font.AllUppercase
-                    font.pixelSize: 24
-                    font.bold: true
-                    font.family: "Inter"
-
-                    color: font_color
-
-                    text: "Ip address: "
-                }
-
-                Label {
                     id: addrText
 
                     font.capitalization: Font.AllUppercase
@@ -184,6 +171,12 @@ Window {
                 restart.onClicked: function () { setValue(tester.testMicrosd()) }
             }
 
+            TestRow {
+                id: emmc_test
+                title: "EMMC"
+                restart.onClicked: function () { setValue(tester.testEmmc()) }
+            }
+
 
             TestRow {
                 enabled: false
@@ -200,15 +193,9 @@ Window {
             }
 
             TestRow {
-                id: ethernet1_test
-                title: "Ethernet1"
-                restart.onClicked: function () { setValue(tester.testEthernet1()) }
-            }
-
-            TestRow {
-                id: ethernet2_test
-                title: "Ethernet2"
-                restart.onClicked: function () { setValue(tester.testEthernet2()) }
+                id: ethernet_test
+                title: "Ethernet"
+                restart.onClicked: function () { setValue(tester.testEthernet()) }
             }
 
             TestRow {
@@ -441,6 +428,7 @@ Window {
         var data = results
 
         microsd_test.setValue(data["microsd"])
+        emmc_test.setValue(data["emmc"])
         usbc_test.setValue(data["usbc"])
         usb3_test.setValue(data["usb3"])
         // lsd_test.setValue(data["lsd"])
@@ -457,8 +445,7 @@ Window {
         // led_test.setValue(data["led"])
         // rtc_test.setValue(data["rtc"])
         // eeprom_test.setValue(data["eeprom"])
-        ethernet1_test.setValue(data["ethernet1"])
-        ethernet2_test.setValue(data["ethernet2"])
+        ethernet_test.setValue(data["ethernet"])
         spi1_test.setValue(data["spi1"])
         spi2_test.setValue(data["spi2"])
         nvme_test.setValue(data["nvme"])
@@ -540,10 +527,8 @@ Window {
             rtc_test.setValue(value)
         } else if (name === "eeprom") {
             eeprom_test.setValue(value)
-        } else if (name === "ethernet1") {
-            ethernet1_test.setValue(value)
-        } else if (name === "ethernet2") {
-            ethernet2_test.setValue(value)
+        } else if (name === "ethernet") {
+            ethernet_test.setValue(value)
         } else if (name === "tamper") {
             tamper_test.setValue(value)
         } else if (name === "usbhub") {
@@ -566,6 +551,8 @@ Window {
         //     gpio3_test.setValue(value)
         } else if( name == "wlan" ) {
             wlan_test.setValue(value)
+        } else if ( name == "emmc" ) {
+            emmc_test.setValue(value);
         }
     }
 }
