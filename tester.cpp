@@ -317,7 +317,7 @@ int Tester::testEmmc()
     QFile handler(emmc_path);
     if( handler.exists() ) {
         if( QFile("/dev/mmcblk1p3").exists() ) {
-            result = CheckSpeedUsb(c_usbc, QString(map_cmd_fio.at("mmc").c_str()), 60);
+            result = CheckSpeedUsb(c_emmc, QString(map_cmd_fio.at("mmc").c_str()), 60);
         } else {
             QFile type_system("check_filesystem");
 
@@ -345,7 +345,7 @@ int Tester::testEmmc()
         }
     }
     
-    Result res = SetResAddedLogs(c_sd, result, "TEST Success", "Not find device of mmcblk0");
+    Result res = SetResAddedLogs(c_emmc, result, "TEST Success", "Not find device of mmcblk0");
     singleTestResult(name, res);
 
     return res;
@@ -361,7 +361,7 @@ int Tester::testMicrosd()
     QFile handler(usd_path);
     if( handler.exists() ) {
         if( QFile("/dev/mmcblk0p3").exists() ) {
-            result = CheckSpeedUsb(c_usbc, QString(map_cmd_fio.at("mmc").c_str()), 10);
+            result = CheckSpeedUsb(c_sd, QString(map_cmd_fio.at("mmc").c_str()), 10);
         }
     }
 
@@ -583,16 +583,11 @@ int Tester::testSpi1()
     bool result = false;
     QString name = "spi1";
     singleTestResult(name, Result::Progress);
-    SpiTest spidev_("/dev/spidev1.0");
 
-    if( spidev_.TestTransfer() == 0 )
-    {
-        result = true;
-    }
+    uint32_t value = gpio_pair_check(GpioDefinition::SPI1_MISO, GpioDefinition::SPI1_MOSI);
 
-    Result res = SetResAddedLogs(c_spi1, result);
+    Result res = SetResAddedLogs(c_spi1, value);
     singleTestResult(name, res);
-
     return res;
 }
 
@@ -601,18 +596,11 @@ int Tester::testSpi2()
     bool result = false;
     QString name = "spi2";
     singleTestResult(name, Result::Progress);
-    SpiTest spidev_("/dev/spidev2.0");
 
+    uint32_t value = gpio_pair_check(GpioDefinition::SPI2_MISO, GpioDefinition::SPI2_MOSI);
 
-    if( spidev_.TestTransfer() == 0 )
-    {
-        result = true;
-    }
-
-    Result res = SetResAddedLogs(c_spi2, result);
+    Result res = SetResAddedLogs(c_spi2, value);
     singleTestResult(name, res);
-
-
     return res;
 }
 
@@ -773,7 +761,6 @@ int Tester::testEthernet()
 
     sys = system("ip netns exec ns_client iperf -c 192.168.1.198 -B 192.168.1.197 > ethernet &");
     sleep(20);
-    result = Result::Failed;
     if( !sys ) {
         if (cur.open(QIODevice::ReadOnly)) {
             QFile speed_eth("speed_eth");
@@ -797,9 +784,6 @@ int Tester::testEthernet()
     usleep(50000);
     Result res = SetResAddedLogs(c_eth, result);
     singleTestResult(name, res);
-
-
-    
     return res;
 }
 
@@ -854,6 +838,12 @@ int Tester::init()
         {GpioDefinition::SPI1_CS0, "SPI1_CS0"},
         {GpioDefinition::SPI2_CS0, "SPI2_CS0"},
         {GpioDefinition::SPI2_CS1, "SPI2_CS1"},
+        {GpioDefinition::SPI1_CLK, "SPI1_CLK"},
+        {GpioDefinition::SPI1_MISO, "SPI1_MISO"},
+        {GpioDefinition::SPI1_MOSI, "SPI1_MOSI"},
+        {GpioDefinition::SPI2_CLK, "SPI2_CLK"},
+        {GpioDefinition::SPI2_MISO, "SPI2_MISO"},
+        {GpioDefinition::SPI2_MOSI, "SPI2_MOSI"},
     };
 
     return (result) ? Result::Success : Result::Failed;
@@ -1001,11 +991,13 @@ std::string Tester::init_gpio(int gpio_number, std::string direction, uint32_t i
 uint32_t Tester::gpio_pair_check(GpioDefinition in, GpioDefinition out)
 {
     if( init_gpio(static_cast<int>(out), std::string("out"), 1).size() > 0 ) {
+        qCInfo(c_gpio) << "Error init " << gpio_definition_[out].c_str() << " like output";
         qCCritical(c_gpio) << "Error init " << gpio_definition_[out].c_str() << " like output";
         return 0;
     }
 
     if( init_gpio(static_cast<int>(in), std::string("in"), 0).size() > 0 ) {
+        qCInfo(c_gpio) << "Error init " << gpio_definition_[in].c_str() << " like input";
         qCCritical(c_gpio) << "Error init " << gpio_definition_[in].c_str() << " like input";
         return 0;
     }
@@ -1040,8 +1032,6 @@ int Tester::testGPIO()
     QString name = "gpio";
     singleTestResult(name, Result::Progress);
 
-    init_gpio(static_cast<int>(GpioDefinition::UART3_CTS), "in", 0);
-
     uint32_t value = gpio_pair_check(GpioDefinition::GPIO2, GpioDefinition::GPIO3);
     value &= gpio_pair_check(GpioDefinition::GPIO3, GpioDefinition::GPIO2);
     value &= gpio_pair_check(GpioDefinition::GPIO0, GpioDefinition::GPIO1);
@@ -1054,11 +1044,15 @@ int Tester::testGPIO()
     init_gpio(static_cast<int>(GpioDefinition::SPI2_CS0), "out", 0);
     init_gpio(static_cast<int>(GpioDefinition::SPI2_CS1), "out", 0);
     init_gpio(static_cast<int>(GpioDefinition::SPI1_CS0), "out", 0);
+    init_gpio(static_cast<int>(GpioDefinition::SPI1_CLK), "out", 0);
+    init_gpio(static_cast<int>(GpioDefinition::SPI2_CLK), "out", 0);
 
     value &= gpio_pair_check(GpioDefinition::UART3_CTS, GpioDefinition::UART3_RTS);
     value &= gpio_pair_check(GpioDefinition::UART3_CTS, GpioDefinition::SPI2_CS0);
     value &= gpio_pair_check(GpioDefinition::UART3_CTS, GpioDefinition::SPI2_CS1);
     value &= gpio_pair_check(GpioDefinition::UART3_CTS, GpioDefinition::SPI1_CS0);
+    value &= gpio_pair_check(GpioDefinition::UART3_CTS, GpioDefinition::SPI2_CLK);
+    value &= gpio_pair_check(GpioDefinition::UART3_CTS, GpioDefinition::SPI1_CLK);
 
     Result res = SetResAddedLogs(c_gpio, value);
     singleTestResult(name, res);

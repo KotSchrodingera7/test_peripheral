@@ -73,6 +73,13 @@ public:
         SPI1_CS0 = 97,
         SPI2_CS0 = 93,
         SPI2_CS1 = 92,
+
+        SPI1_CLK = 115,
+        SPI1_MISO = 114,
+        SPI1_MOSI = 113,
+        SPI2_CLK  = 96,
+        SPI2_MISO = 95,
+        SPI2_MOSI = 94
     };
 
 private:
