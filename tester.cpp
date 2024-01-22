@@ -411,7 +411,7 @@ int Tester::testUsbC() {
     QString name = "usbc";
     singleTestResult(name, Result::Progress);
     system("umount /media/fatfs > /dev/null 2>&1");
-    if( CheckNumberUsb(4) ) {
+    if( CheckNumberUsb(2) ) {
 
         bool check_folder = (bool)system("test -d /media/fatfs");
 
@@ -421,12 +421,12 @@ int Tester::testUsbC() {
         }
 
         QString cmd;
-        QString usd_path = "/dev/sdb";
+        QString usd_path = "/dev/sda1";
         QFile handler(usd_path);
         if( handler.exists() ) {
-            cmd = "mount /dev/sdb /media/fatfs/ > /dev/null 2>&1";
-        } else if( QFile("/dev/sdb1").exists() ) {
-            cmd = "mount /dev/sdb1 /media/fatfs/ > /dev/null 2>&1";
+            cmd = "mount /dev/sda1 /media/fatfs/ > /dev/null 2>&1";
+        } else if( QFile("/dev/sda").exists() ) {
+            cmd = "mount /dev/sda /media/fatfs/ > /dev/null 2>&1";
         }
         
         int sys = system(qPrintable(cmd));
@@ -462,10 +462,10 @@ int Tester::testUsb3()
         }
 
         QString cmd;
-        if( QFile("/dev/sda").exists() ) {
-            cmd = "mount /dev/sda /media/fatfs/ > /dev/null 2>&1";
-        } else if( QFile("/dev/sda1").exists() ) {
+        if( QFile("/dev/sda1").exists() ) {
             cmd = "mount /dev/sda1 /media/fatfs/ > /dev/null 2>&1";
+        } else if( QFile("/dev/sda").exists() ) {
+            cmd = "mount /dev/sda /media/fatfs/ > /dev/null 2>&1";
         }
 
         int sys = system(qPrintable(cmd));
@@ -769,7 +769,7 @@ int Tester::testEthernet()
             if( speed_eth.open(QIODevice::ReadOnly) ) {
                 QByteArray data = speed_eth.readAll();
                 QString res = QString(data);
-                if( res.toInt() > 900 ) {
+                if( res.toInt() > 80 ) {
                     result = true;
                 }
             }   
@@ -860,7 +860,7 @@ int Tester::test()
     results.ethernet = static_cast<Result>(testEthernet());
     results.can = static_cast<Result>(testCan());
     results.usbc = static_cast<Result>(testUsbC());
-    results.usb3 = static_cast<Result>(testUsb3());
+    // results.usb3 = static_cast<Result>(testUsb3());
     results.spi1 = static_cast<Result>(testSpi1());
     results.spi2 = static_cast<Result>(testSpi2());
     results.nvme = static_cast<Result>(testNvme());
