@@ -28,7 +28,56 @@ Window {
         id: tests_col
         anchors.horizontalCenter: parent.horizontalCenter
         spacing: 32
-
+        Column {
+            id: getting_temp;
+            // spacing: 3
+            Rectangle { 
+                color: "transparent"
+                width: 50
+                height: 30 
+            }
+            Label {
+                id: infoText
+                font.pixelSize: 10
+                font.bold: true
+                font.family: "Inter"
+                color: font_color
+                text: "Temp " + tester.temp
+            }
+            Label {
+                id: infoCPU0
+                font.pixelSize: 10
+                font.bold: true
+                font.family: "Inter"
+                color: font_color
+                text: "CPU0 :"
+            }
+            Label {
+                id: infoCPU1
+                font.pixelSize: 10
+                font.bold: true
+                font.family: "Inter"
+                color: font_color
+                text: "CPU1 :"
+            }
+            Label {
+                id: infoCPU2
+                font.pixelSize: 10
+                font.bold: true
+                font.family: "Inter"
+                color: font_color
+                text: "CPU2 :"
+            }
+            Label {
+                id: infoCPU3
+                font.pixelSize: 10
+                font.bold: true
+                font.family: "Inter"
+                color: font_color
+                text: "CPU3 :"
+            }
+        }
+        
         Column {
             id: headerCol
             anchors.horizontalCenter: parent.horizontalCenter
@@ -409,11 +458,45 @@ Window {
         }
     }
 
+    Timer {
+        id: timer_temp
+        running: true
+        interval: 1000
+        repeat: true
+        onTriggered: function() {
+            // autotest_text.text = "Тест запущен"
+            // statusText.text = "Running"
+            // statusText.color = "white"
+            tester.getTemp()
+            tester.updateFreq();
+        }
+    }
+
     Connections {
         target: tester
         onTestFinished: fillTestResults(results)
         onSingleTestFinished: parseSingleTest(results)
         onNeedAction: showNeededAction(results)
+        onFreqUpdate: setFreqAction(result)
+    }
+
+    // function showNeededAction(results) {
+
+    //     infoText.text = result
+    // }
+
+    function setFreqAction(results) {
+        var data = results
+
+        var freq0 = data["cpu0"]
+        var freq1 = data["cpu1"]
+        var freq2 = data["cpu2"]
+        var freq3 = data["cpu3"]
+
+        infoCPU0.text = "CPU0 : " + freq0 + "%"
+        infoCPU1.text = "CPU1 : " + freq1 + "%"
+        infoCPU2.text = "CPU2 : " + freq2 + "%"
+        infoCPU3.text = "CPU3 : " + freq3 + "%"
     }
 
     function showNeededAction(results) {

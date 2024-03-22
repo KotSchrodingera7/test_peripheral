@@ -37,13 +37,13 @@ int SpiTest::TestTransfer()
 
     fd_ = open(dev_.c_str(), O_RDWR);
     if(fd_ < 0) {
-        qCCritical(c_spi) << dev_.c_str() << " Could not open the SPI device...";
+        std::cout << (c_spi) << dev_.c_str() << " Could not open the SPI device...";
         return -1;
     }
 
     ret = ioctl(fd_, SPI_IOC_RD_MODE32, &scratch32);
     if(ret != 0) {
-        qCCritical(c_spi) << dev_.c_str() << " Could not read SPI mode...";
+        std::cout << (c_spi) << dev_.c_str() << " Could not read SPI mode...";
         close(fd_);
         return -1;
     }
@@ -52,14 +52,14 @@ int SpiTest::TestTransfer()
 
     ret = ioctl(fd_, SPI_IOC_WR_MODE32, &scratch32);
     if(ret != 0) {
-        qCCritical(c_spi) << dev_.c_str() << " Could not write SPI mode...";
+        std::cout << (c_spi) << dev_.c_str() << " Could not write SPI mode...";
         close(fd_);
         return -1;
     }
 
     ret = ioctl(fd_, SPI_IOC_RD_MAX_SPEED_HZ, &scratch32);
     if(ret != 0) {
-        qCCritical(c_spi) << dev_.c_str() << " Could not read the SPI max speed...";
+        std::cout << (c_spi) << dev_.c_str() << " Could not read the SPI max speed...";
         close(fd_);
         return -1;
     }
@@ -68,14 +68,14 @@ int SpiTest::TestTransfer()
 
     ret = ioctl(fd_, SPI_IOC_WR_MAX_SPEED_HZ, &scratch32);
     if(ret != 0) {
-        qCCritical(c_spi) << dev_.c_str() << " Could not write the SPI max speed...";
+        std::cout << (c_spi) << dev_.c_str() << " Could not write the SPI max speed...";
         close(fd_);
         return -1;
     }
 
     ret = ioctl(fd_, SPI_IOC_MESSAGE(1), &trx);
     if(ret != 0) {
-        qCCritical(c_spi) << dev_.c_str() << " SPI transfer returned ...";
+        std::cout << (c_spi) << dev_.c_str() << " SPI transfer returned ...";
     }
 
     if( rx_buffer == tx_buffer ) 
@@ -83,7 +83,7 @@ int SpiTest::TestTransfer()
         return 0;
     }
 
-    qCCritical(c_spi) << dev_.c_str() << " Tx buffer don't equal rx buffer"; 
+    std::cout << (c_spi) << dev_.c_str() << " Tx buffer don't equal rx buffer"; 
 
     return -1;
 }

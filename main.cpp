@@ -3,13 +3,19 @@
 
 #include <QQmlContext>
 
+#include <thread>
+
 #include "tester.h"
 #include "logger.h"
 
 int main(int argc, char *argv[])
 {
+    // std::cout << "FFFFFFFFFFFFF" << std::endl;
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 
+    
+    // std::cout << argv[1] << std::endl;
+    
     QGuiApplication app(argc, argv);
 
     QQmlApplicationEngine engine;

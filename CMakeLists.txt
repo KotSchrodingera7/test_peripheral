@@ -16,6 +16,7 @@ add_executable(tester main.cpp
                         tester.cpp 
                         canbus.cpp 
                         can_thread.cpp 
+                        check_cpu.cpp
                         spi_test.cpp 
                         test_uart.cpp
                         logger.cpp)

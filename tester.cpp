@@ -2,6 +2,7 @@
 
 #include "tester.h"
 
+
 #include <QFileInfo>
 #include <QProcess>
 #include <QNetworkInterface>
@@ -15,6 +16,7 @@
 #include "spi_test.h"
 #include "test_uart.h"
 #include "logger.h"
+#include "check_cpu.h"
 
 #include <unistd.h>
 #include <iostream>
@@ -243,6 +245,41 @@ void Tester::runTest(QString name)
     if (verbose_logs) {
         std::cout << "tests_started" << std::endl;
     }
+}
+
+void Tester::updateFreq()
+{
+    auto value = freq_cpu_.GetFreq();
+
+    if( value.size() > 0 ) 
+    {
+        QVariantMap res;
+        for(int i = 0; i < value.size(); ++i)
+        {
+            res[std::string("cpu").append(std::to_string(i)).c_str()] = value[i];
+        }
+        emit freqUpdate(QVariant(res));
+    }
+}
+
+void Tester::getTemp()
+{
+    std::ifstream file("/sys/class/thermal/thermal_zone0/temp");
+
+    if( !file.is_open() ) {
+        std::cout << "Error open read temp" << std::endl;
+        return;
+    }
+    double temp_int_ = 0;
+    file >> temp_int_;
+    
+    temp_ = QString::number(temp_int_/1000.0);
+    emit tempChanged(temp_);
+}
+
+QString Tester::temp()
+{
+    return temp_;
 }
 
 QString Tester::addr()
@@ -769,7 +806,7 @@ int Tester::testEthernet()
             if( speed_eth.open(QIODevice::ReadOnly) ) {
                 QByteArray data = speed_eth.readAll();
                 QString res = QString(data);
-                if( res.toInt() > 80 ) {
+                if( res.toInt() > 900 ) {
                     result = true;
                 }
             }   
@@ -854,19 +891,19 @@ int Tester::test()
     QDateTime now;
     results.date = now.date().toString();
 
-    results.microsd = static_cast<Result>(testMicrosd());
-    results.emmc = static_cast<Result>(testEmmc());
-    results.gpio = static_cast<Result>(testGPIO());
-    results.ethernet = static_cast<Result>(testEthernet());
-    results.can = static_cast<Result>(testCan());
-    results.usbc = static_cast<Result>(testUsbC());
-    // results.usb3 = static_cast<Result>(testUsb3());
-    results.spi1 = static_cast<Result>(testSpi1());
-    results.spi2 = static_cast<Result>(testSpi2());
-    results.nvme = static_cast<Result>(testNvme());
-    results.wlan = static_cast<Result>(testWlan());
-    results.uart78 = static_cast<Result>(testUart78());
-    results.uart39 = static_cast<Result>(testUart39());
+    // results.microsd = static_cast<Result>(testMicrosd());
+    // results.emmc = static_cast<Result>(testEmmc());
+    // results.gpio = static_cast<Result>(testGPIO());
+    // results.ethernet = static_cast<Result>(testEthernet());
+    // results.can = static_cast<Result>(testCan());
+    // results.usbc = static_cast<Result>(testUsbC());
+    // // results.usb3 = static_cast<Result>(testUsb3());
+    // results.spi1 = static_cast<Result>(testSpi1());
+    // results.spi2 = static_cast<Result>(testSpi2());
+    // results.nvme = static_cast<Result>(testNvme());
+    // results.wlan = static_cast<Result>(testWlan());
+    // results.uart78 = static_cast<Result>(testUart78());
+    // results.uart39 = static_cast<Result>(testUart39());
     
     
 

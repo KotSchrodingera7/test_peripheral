@@ -7,6 +7,7 @@
 #include <QVariantMap>
 // #include <QSerialPort>
 #include <unordered_map>
+#include "check_cpu.h"
 
 class Tester : public QObject
 {
@@ -110,6 +111,9 @@ private:
     QString ip;
     QString testTargetIp;
     QString  testCardNumber;
+    QString temp_;
+
+    CheckCpu freq_cpu_;
 
     std::unordered_map<GpioDefinition, std::string> gpio_definition_;
 
@@ -121,10 +125,19 @@ public:
 
     Tester* tester();
     QString addr();
+    QString temp();
+
+    void setTemp(QString value)
+    {
+        temp_ = value;
+    }
+
     Result SetResAddedLogs(const QLoggingCategory &name(), bool result, QString success = "TEST Success", QString error = "TEST Failed");
 
     // Q_PROPERTY(QString cardNumber READ cardNumber WRITE setCardNumber NOTIFY cardNumberChanged)
     // Q_PROPERTY(QString targetIp READ targetIp WRITE setTargetIp NOTIFY targetIpChanged)
+
+    Q_PROPERTY(QString temp READ temp WRITE setTemp NOTIFY tempChanged)
     Q_INVOKABLE int testEmmc();
     Q_INVOKABLE int testMicrosd();
     Q_INVOKABLE int testUsbC();
@@ -155,11 +168,15 @@ public:
     Q_INVOKABLE bool saveResults();
 
     Q_INVOKABLE void runTest(QString name);
+    Q_INVOKABLE void getTemp();
+    Q_INVOKABLE void updateFreq();
 
 signals:
     void testFinished(QVariant results);
     void singleTestFinished(QVariant results);
     void needAction(QVariant results);
+    void tempChanged(QString result);
+    void freqUpdate(QVariant result);
 
     void cardNumberChanged(QString value);
     void targetIpChanged(QString value);
