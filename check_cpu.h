@@ -14,8 +14,7 @@ std::istream& operator>>(std::istream &in, std::vector<uint32_t> &time);
 class CheckCpu 
 {
 public:
-    CheckCpu() {}
-    ~CheckCpu() {}
+    CheckCpu() = default;
 
     std::vector<double> GetFreq()
     {

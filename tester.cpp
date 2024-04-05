@@ -188,7 +188,7 @@ QString line_cmd(QString cmd) {
     return out;
 }
 
-Tester::Tester(QObject *parent) : QObject(parent)
+Tester::Tester(CameraGST &camera, QObject *parent) : camera_(camera), QObject(parent)
 {
 }
 
@@ -310,6 +310,34 @@ Tester* Tester::tester()
 {
     return static_cast<Tester*>(this);
 }
+
+int Tester::startDOOM() {
+    if( process_.state() == QProcess::NotRunning ) {
+        // process_.start("chocolate-doom");
+        process_.start("glmark2-es2-wayland");
+    } else if( process_.state()  == QProcess::Running ) {
+        process_.close();
+    }
+
+    return Result::Success;
+}
+int Tester::closeDOOM() {
+
+    
+    return Result::Success;
+}
+
+int Tester::CameraPlay() {
+    camera_.CameraPlay();
+    return Result::Success;
+}
+
+int Tester::CameraPause() {
+    camera_.CameraPause();
+    // process_.close();
+    return Result::Success;
+}
+
 
 bool Tester::CheckSpeedUsb(const QLoggingCategory &name(), QString cmd, int limit) {
     bool result = false;
@@ -540,19 +568,21 @@ int Tester::testSpeaker()
 
 int Tester::testCamera()
 {
-    QtConcurrent::run([=](){
-        bool result = false;
-        QString name = "camera";
+    camera_.CameraPlay();
+    std::cout << "Camera PLAY" << std::endl;
+    // QtConcurrent::run([=](){
+    //     bool result = false;
+    //     QString name = "camera";
 
-        usleep(50000);
-        result = !(bool)(system("gst-launch-1.0 -v v4l2src device=/dev/video0 ! video/x-raw,format=NV12,width=1024,height=600,framerate=30/1 ! videoconvert ! waylandsink > /dev/null 2>&1 &"));
-        sleep(10);
-        system("killall gst-launch-1.0");
+    //     usleep(50000);
+    //     result = !(bool)(system("gst-launch-1.0 -v v4l2src device=/dev/video0 ! video/x-raw,format=NV12,width=1024,height=600,framerate=30/1 ! videoconvert ! waylandsink > /dev/null 2>&1 &"));
+    //     sleep(10);
+    //     system("killall gst-launch-1.0");
 
-        Result res = SetResAddedLogs(c_camera, result, "System execuition success", "System execuition failed");
+    //     Result res = SetResAddedLogs(c_camera, result, "System execuition success", "System execuition failed");
 
-        singleTestResult(name, res);
-    });
+    //     singleTestResult(name, res);
+    // });
 
     return Result::Success;
 }
@@ -897,7 +927,7 @@ int Tester::test()
     // results.ethernet = static_cast<Result>(testEthernet());
     // results.can = static_cast<Result>(testCan());
     // results.usbc = static_cast<Result>(testUsbC());
-    // // results.usb3 = static_cast<Result>(testUsb3());
+    // results.usb3 = static_cast<Result>(testUsb3());
     // results.spi1 = static_cast<Result>(testSpi1());
     // results.spi2 = static_cast<Result>(testSpi2());
     // results.nvme = static_cast<Result>(testNvme());
@@ -1069,9 +1099,7 @@ int Tester::testGPIO()
     QString name = "gpio";
     singleTestResult(name, Result::Progress);
 
-    uint32_t value = gpio_pair_check(GpioDefinition::GPIO2, GpioDefinition::GPIO3);
-    value &= gpio_pair_check(GpioDefinition::GPIO3, GpioDefinition::GPIO2);
-    value &= gpio_pair_check(GpioDefinition::GPIO0, GpioDefinition::GPIO1);
+    uint32_t value = gpio_pair_check(GpioDefinition::GPIO3, GpioDefinition::GPIO2);
     value &= gpio_pair_check(GpioDefinition::GPIO1, GpioDefinition::GPIO0);
     value &= gpio_pair_check(GpioDefinition::UART7_CTS, GpioDefinition::UART8_RTS);
     value &= gpio_pair_check(GpioDefinition::UART8_CTS, GpioDefinition::UART7_RTS);

@@ -13,7 +13,7 @@ Item {
     property alias restart: restart
 
     property string font_color: "#969696"
-    property string success_color: "#57DCBE"
+    property string success_color: "#37A439"
     property string failed_color: "#E91E63"
     property string unknown_color: "#276BB0"
     property string warning_color: "#FF6F00"

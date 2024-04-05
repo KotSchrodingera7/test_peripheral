@@ -4,12 +4,14 @@ import QtQuick.Controls 2.12
 import QtQuick.Layouts 1.12
 import macro.tester 1.0
 
+import org.freedesktop.gstreamer.GLVideoItem 1.0
+
 Window {
     property bool dark_mode: true
     property string background_color_light: "#969696"
     property string background_color_dark: "#363636"
-    property string font_color: "#57DCBE"
-    property string success_color: "#57DCBE"
+    property string font_color: "#37A439"
+    property string success_color: "#37A439"
     property string failed_color: "#E91E63"
     property string unknown_color: "#276BB0"
     property bool touch: touch
@@ -24,60 +26,124 @@ Window {
     title: qsTr("DS-RK3568 test")
     color: (dark_mode) ? background_color_dark : background_color_light
     
+
+    Rectangle { 
+        color: "transparent"
+        width: 100
+        height: 100
+        radius: 5
+        border.width: 2
+        Column  {
+            id: getting_info;
+            spacing: 5
+            InfoCpu {
+                id: infoText
+                inner_text: "Temp " + tester.temp + "°C "
+            }
+            InfoCpu {
+                id: infoCPU0
+                inner_text: "CPU0 :"
+            }
+            InfoCpu {
+                id: infoCPU1
+                inner_text: "CPU1 :"
+            }
+            InfoCpu {
+                id: infoCPU2
+                inner_text: "CPU2 :"
+            }
+            InfoCpu {
+                id: infoCPU3
+                inner_text: "CPU3 :"
+            }
+        }
+    }
+
+    Button {
+        id: camera_button_head
+        anchors.left: parent.left
+        anchors.leftMargin: 150
+
+        anchors.top: parent.top
+        anchors.topMargin: 10
+        // width: 200
+        // height: 50
+
+        icon.width: 50
+        icon.height: 50
+        icon.color: "transparent"
+        icon.source: "/usr/local/share/icons/icon_camera.png"
+
+        background: Rectangle {
+            id: bg_camera_button_head
+            anchors.fill: parent
+            color: "transparent"
+        }
+        // text: "Камера"
+        onClicked: function() {
+            bg_camera_button.color = font_color
+            if( contentCol.visible == true ) {
+                contentCol.visible = false
+                colorsRow.visible = false
+                buttonsRow.visible = false
+                video.visible = true;
+                tester.CameraPlay()
+            } else {
+                tester.CameraPause()
+                contentCol.visible = true;
+                colorsRow.visible = true
+                buttonsRow.visible = true
+                video.visible = false;
+            }
+            bg_camera_button.color = "white"
+            
+        }
+    }
+
+    Button {
+        id: doom
+        anchors.left: parent.left
+        anchors.leftMargin: 250
+
+        anchors.top: parent.top
+        anchors.topMargin: 10
+        // width: 200
+        // height: 50
+
+        icon.width: 50
+        icon.height: 50
+        icon.color: "transparent"
+        icon.source: "/usr/local/share/icons/doom.png"
+
+        background: Rectangle {
+            id: bg_doom
+            anchors.fill: parent
+            color: "transparent"
+        }
+        // text: "Камера"
+        onClicked: function() {
+            tester.startDOOM();
+        }
+    }
+
+    GstGLVideoItem {
+        id: video
+        anchors.top: parent.top
+        anchors.topMargin: 100
+        objectName: "videoItem"
+        anchors.centerIn: parent
+        width: parent.width
+        height: parent.width
+        visible: true
+    }
+
     Column {
         id: tests_col
         anchors.horizontalCenter: parent.horizontalCenter
+        anchors.top: parent.top
+        anchors.topMargin: 100
         spacing: 32
-        Column {
-            id: getting_temp;
-            // spacing: 3
-            Rectangle { 
-                color: "transparent"
-                width: 50
-                height: 30 
-            }
-            Label {
-                id: infoText
-                font.pixelSize: 10
-                font.bold: true
-                font.family: "Inter"
-                color: font_color
-                text: "Temp " + tester.temp
-            }
-            Label {
-                id: infoCPU0
-                font.pixelSize: 10
-                font.bold: true
-                font.family: "Inter"
-                color: font_color
-                text: "CPU0 :"
-            }
-            Label {
-                id: infoCPU1
-                font.pixelSize: 10
-                font.bold: true
-                font.family: "Inter"
-                color: font_color
-                text: "CPU1 :"
-            }
-            Label {
-                id: infoCPU2
-                font.pixelSize: 10
-                font.bold: true
-                font.family: "Inter"
-                color: font_color
-                text: "CPU2 :"
-            }
-            Label {
-                id: infoCPU3
-                font.pixelSize: 10
-                font.bold: true
-                font.family: "Inter"
-                color: font_color
-                text: "CPU3 :"
-            }
-        }
-        
+
         Column {
             id: headerCol
             anchors.horizontalCenter: parent.horizontalCenter
@@ -212,7 +278,8 @@ Window {
         Column {
             id: contentCol
             anchors.left: parent.left
-            
+            visible:true;
+
             spacing: 2
             TestRow {
                 id: microsd_test
@@ -493,10 +560,10 @@ Window {
         var freq2 = data["cpu2"]
         var freq3 = data["cpu3"]
 
-        infoCPU0.text = "CPU0 : " + freq0 + "%"
-        infoCPU1.text = "CPU1 : " + freq1 + "%"
-        infoCPU2.text = "CPU2 : " + freq2 + "%"
-        infoCPU3.text = "CPU3 : " + freq3 + "%"
+        infoCPU0.inner_text = "CPU0 : " + freq0 + "%"
+        infoCPU1.inner_text = "CPU1 : " + freq1 + "%"
+        infoCPU2.inner_text = "CPU2 : " + freq2 + "%"
+        infoCPU3.inner_text = "CPU3 : " + freq3 + "%"
     }
 
     function showNeededAction(results) {

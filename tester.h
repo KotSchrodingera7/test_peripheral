@@ -5,9 +5,11 @@
 #include <QString>
 #include <QVariant>
 #include <QVariantMap>
+#include <QProcess>
 // #include <QSerialPort>
 #include <unordered_map>
 #include "check_cpu.h"
+#include "camera_gst.h"
 
 class Tester : public QObject
 {
@@ -107,6 +109,9 @@ private:
     std::string set_value(int gpio_number, uint32_t value);
     std::string init_gpio(int gpio_number, std::string direction, uint32_t initial_value);
 
+    CameraGST &camera_;
+
+    QProcess process_;
     TestResult results;
     QString ip;
     QString testTargetIp;
@@ -121,7 +126,7 @@ public slots:
     void receiveAction(QString info);
 
 public:
-    explicit Tester(QObject *parent = nullptr);
+    explicit Tester(CameraGST &camera, QObject *parent = nullptr);
 
     Tester* tester();
     QString addr();
@@ -153,6 +158,12 @@ public:
     Q_INVOKABLE int testSpeaker();
     Q_INVOKABLE int testCamera();
     Q_INVOKABLE int testWlan();
+
+    Q_INVOKABLE int CameraPlay();
+    Q_INVOKABLE int CameraPause();
+
+    Q_INVOKABLE int startDOOM();
+    Q_INVOKABLE int closeDOOM();
 
 
     Q_INVOKABLE int init();
