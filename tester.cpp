@@ -212,7 +212,8 @@ Tester::TestResult::TestResult() :
     gpio1(Result::NotTested),
     gpio2(Result::NotTested),
     gpio3(Result::NotTested),
-    wlan(Result::NotTested)
+    wlan(Result::NotTested),
+    emmc(Result::NotTested)
 {
 
 }
@@ -312,18 +313,43 @@ Tester* Tester::tester()
 }
 
 int Tester::startDOOM() {
-    if( process_.state() == QProcess::NotRunning ) {
-        // process_.start("chocolate-doom");
-        process_.start("glmark2-es2-wayland");
-    } else if( process_.state()  == QProcess::Running ) {
-        process_.close();
+    if( process_doom_.state() == QProcess::NotRunning ) {
+        // process_doom_.start("chocolate-doom -geometry 600x1024");
+    } else if( process_doom_.state()  == QProcess::Running ) {
+        process_doom_.close();
+        QString res;
+        res = "doom";
+        emit statusProcess(res);
     }
 
     return Result::Success;
 }
-int Tester::closeDOOM() {
 
-    
+int Tester::startGLMARK() {
+    if( process_glmark_.state() == QProcess::NotRunning ) {
+        // process_glmark_.start("glmark2-es2-wayland --visual-config='a=0:buf=24' --annotate --size 600x800");
+        process_glmark_.start("glmark2");
+    } else if( process_glmark_.state()  == QProcess::Running ) {
+        process_glmark_.close();
+        QString res;
+        res = "glmark";
+        emit statusProcess(res);
+    }
+
+    return Result::Success;
+}
+
+
+int Tester::startCPUTEST() {
+    if( process_cpu_.state() == QProcess::NotRunning ) {
+        // process_cpu_.start("stress-ng --cpu 4 --cpu-method matrixprod --metrics --timeout 600");
+    } else if( process_cpu_.state()  == QProcess::Running ) {
+        process_cpu_.close();
+        QString res;
+        res = "load_cpu";
+        emit statusProcess(res);
+    }
+
     return Result::Success;
 }
 
@@ -334,7 +360,6 @@ int Tester::CameraPlay() {
 
 int Tester::CameraPause() {
     camera_.CameraPause();
-    // process_.close();
     return Result::Success;
 }
 

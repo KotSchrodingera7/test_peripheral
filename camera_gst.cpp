@@ -1,6 +1,12 @@
 
 #include "camera_gst.h"
 
+CameraGST::CameraGST(int *arg, char **argv)
+{
+    gst_init(arg, &argv);
+    sink = gst_element_factory_make ("qmlglsink", NULL);
+}
+
 CameraGST::~CameraGST()
 {
     gst_element_set_state (pipeline_, GST_STATE_NULL);
@@ -9,9 +15,8 @@ CameraGST::~CameraGST()
     gst_deinit();
 }
 
-bool CameraGST::Init(int *arg, char **argv)
+bool CameraGST::Init()
 {
-    gst_init (arg, &argv);
     pipeline_ = gst_pipeline_new (NULL);
     GstElement *src = gst_element_factory_make("v4l2src", NULL);
     if( !src ) 
@@ -57,16 +62,13 @@ bool CameraGST::Init(int *arg, char **argv)
 
     }
 
-    sink = gst_element_factory_make ("qmlglsink", NULL);
-
-    if( !sink )
-    {
-        return false;
+    if( !sink ) {
+        return false;   
     }
-
     gst_bin_add_many (GST_BIN (pipeline_), src, capsfilter, glupload, glcolorconvert, gldownload, sink, NULL);
     gst_element_link_many (src, capsfilter, glupload, glcolorconvert, gldownload, sink, NULL);
 
+    state_init_ = true;
     return true;
 }
 

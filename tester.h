@@ -111,11 +111,13 @@ private:
 
     CameraGST &camera_;
 
-    QProcess process_;
+    QProcess process_doom_;
+    QProcess process_glmark_;
+    QProcess process_cpu_;
     TestResult results;
     QString ip;
     QString testTargetIp;
-    QString  testCardNumber;
+    QString testCardNumber;
     QString temp_;
 
     CheckCpu freq_cpu_;
@@ -163,7 +165,8 @@ public:
     Q_INVOKABLE int CameraPause();
 
     Q_INVOKABLE int startDOOM();
-    Q_INVOKABLE int closeDOOM();
+    Q_INVOKABLE int startGLMARK();
+    Q_INVOKABLE int startCPUTEST();
 
 
     Q_INVOKABLE int init();
@@ -188,9 +191,10 @@ signals:
     void needAction(QVariant results);
     void tempChanged(QString result);
     void freqUpdate(QVariant result);
-
+    
     void cardNumberChanged(QString value);
     void targetIpChanged(QString value);
+    void statusProcess(QString value);
 
 };
 

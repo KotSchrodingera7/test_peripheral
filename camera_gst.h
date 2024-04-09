@@ -8,9 +8,9 @@
 class CameraGST
 {
 public: 
-    CameraGST() = default;
+    CameraGST(int *arg, char **argv);
     ~CameraGST();
-    bool Init(int *arg, char **argv);
+    bool Init();
 
 template<typename ...Args>
     void ObjectSet(GstElement* object, const char* name, Args... args) 
@@ -21,7 +21,9 @@ template<typename ...Args>
 
     void CameraPlay();
     void CameraPause();
+
 private:
     GstElement *pipeline_;
     GstElement *sink;
+    bool state_init_{false};
 };

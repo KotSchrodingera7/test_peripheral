@@ -6,6 +6,8 @@ import macro.tester 1.0
 
 import org.freedesktop.gstreamer.GLVideoItem 1.0
 
+
+
 Window {
     property bool dark_mode: true
     property string background_color_light: "#969696"
@@ -66,8 +68,6 @@ Window {
 
         anchors.top: parent.top
         anchors.topMargin: 10
-        // width: 200
-        // height: 50
 
         icon.width: 50
         icon.height: 50
@@ -79,9 +79,7 @@ Window {
             anchors.fill: parent
             color: "transparent"
         }
-        // text: "Камера"
         onClicked: function() {
-            bg_camera_button.color = font_color
             if( contentCol.visible == true ) {
                 contentCol.visible = false
                 colorsRow.visible = false
@@ -95,34 +93,37 @@ Window {
                 buttonsRow.visible = true
                 video.visible = false;
             }
-            bg_camera_button.color = "white"
-            
         }
     }
 
-    Button {
-        id: doom
+    TestIcons {
+        id: doom_id
         anchors.left: parent.left
         anchors.leftMargin: 250
-
-        anchors.top: parent.top
-        anchors.topMargin: 10
-        // width: 200
-        // height: 50
-
-        icon.width: 50
-        icon.height: 50
-        icon.color: "transparent"
-        icon.source: "/usr/local/share/icons/doom.png"
-
-        background: Rectangle {
-            id: bg_doom
-            anchors.fill: parent
-            color: "transparent"
-        }
-        // text: "Камера"
-        onClicked: function() {
+        button_icon.icon.source: "/usr/local/share/icons/doom.png"
+        button_icon.onClicked: function() {
+            doom_id.setVisible(true);
             tester.startDOOM();
+        }
+    }
+    TestIcons {
+        id: glmark
+        anchors.left: parent.left
+        anchors.leftMargin: 350
+        button_icon.icon.source: "/usr/local/share/icons/glmark2.svg"
+        button_icon.onClicked: function() {
+            glmark.setVisible(true);
+            tester.startGLMARK();
+        }
+    }
+    TestIcons {
+        id: load_cpu
+        anchors.left: parent.left
+        anchors.leftMargin: 450
+        button_icon.icon.source: "/usr/local/share/icons/load_cpu.png"
+        button_icon.onClicked: function() {
+            load_cpu.setVisible(true);
+            tester.startCPUTEST();
         }
     }
 
@@ -432,24 +433,24 @@ Window {
                 anchors.horizontalCenter: parent.horizontalCenter
             }
 
-//            Label {
-//                id: buttonsText
-//                anchors.horizontalCenter: parent.horizontalCenter
-//                visible: false
+    //            Label {
+    //                id: buttonsText
+    //                anchors.horizontalCenter: parent.horizontalCenter
+    //                visible: false
 
-//                padding: 8
-//                Layout.fillWidth: true
-//                Layout.alignment: Qt.AlignRight
+    //                padding: 8
+    //                Layout.fillWidth: true
+    //                Layout.alignment: Qt.AlignRight
 
-//                font.capitalization: Font.AllUppercase
-//                font.pixelSize: 28
-//                font.bold: true
-//                font.family: "Inter"
+    //                font.capitalization: Font.AllUppercase
+    //                font.pixelSize: 28
+    //                font.bold: true
+    //                font.family: "Inter"
 
-//                color: "white"
+    //                color: "white"
 
-//                text: "Проверка"
-//            }
+    //                text: "Проверка"
+    //            }
 
             Row {
                 id: buttonsRow
@@ -476,23 +477,23 @@ Window {
                     }
                 }
 
-                Button {
-                    id: camera_button
-                    width: 200
-                    height: 50
+                // Button {
+                //     id: camera_button
+                //     width: 200
+                //     height: 50
 
-                    background: Rectangle {
-                        id: bg_camera_button
-                        anchors.fill: parent
-                        color: "white"
-                    }
-                    text: "Камера"
-                    onClicked: function() {
-                        bg_camera_button.color = font_color
-                        tester.testCamera()
-                        buttonsRow.enabled = false
-                    }
-                }
+                //     background: Rectangle {
+                //         id: bg_camera_button
+                //         anchors.fill: parent
+                //         color: "white"
+                //     }
+                //     text: "Камера"
+                //     onClicked: function() {
+                //         bg_camera_button.color = font_color
+                //         tester.testCamera()
+                //         buttonsRow.enabled = false
+                //     }
+                // }
             }
 
             Button {
@@ -545,6 +546,15 @@ Window {
         onSingleTestFinished: parseSingleTest(results)
         onNeedAction: showNeededAction(results)
         onFreqUpdate: setFreqAction(result)
+        onStatusProcess: {
+            if( value == "glmark") {
+                glmark.setVisible(false)
+            } else if( value == "doom") {
+                doom_id.setVisible(false)
+            } else if("load_cpu") {
+                load_cpu.setVisible(false);
+            }
+        }
     }
 
     // function showNeededAction(results) {
@@ -615,8 +625,8 @@ Window {
     //            statusText.color = "green"
         } else {
             success = false
-//            statusText.text = "Failed"
-//            statusText.color = "red"
+    //            statusText.text = "Failed"
+    //            statusText.color = "red"
         }
 
         autotest_text.text = "Для повторной проверки\nподсветки, звука\nвоспользуйтесь кнопками"
@@ -639,7 +649,7 @@ Window {
         } else if (name === "lsd") {
             lsd_test.setValue(value)
         } else if (name === "touchscreen") {
-//            touchscreen_button.enabled = true
+    //            touchscreen_button.enabled = true
             touchscreen_test.setValue(value)
 
             if (success) {
@@ -667,12 +677,12 @@ Window {
             bg_speaker_button.color = "white"
             buttonsRow.enabled = true
             speaker_tested = true
-//            touchscreen_button.visible = camera_tested && speaker_tested
+    //            touchscreen_button.visible = camera_tested && speaker_tested
         } else if (name === "camera") {
             bg_camera_button.color = "white"
             camera_tested = true
             buttonsRow.enabled = true
-//            touchscreen_button.visible = camera_tested && speaker_tested
+    //            touchscreen_button.visible = camera_tested && speaker_tested
         } else if (name === "rtc") {
             rtc_test.setValue(value)
         } else if (name === "eeprom") {
@@ -706,3 +716,4 @@ Window {
         }
     }
 }
+
