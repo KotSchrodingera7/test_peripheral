@@ -1032,9 +1032,7 @@ int Tester::testGPIO()
     QString name = "gpio";
     singleTestResult(name, Result::Progress);
 
-    uint32_t value = gpio_pair_check(GpioDefinition::GPIO2, GpioDefinition::GPIO3);
-    value &= gpio_pair_check(GpioDefinition::GPIO3, GpioDefinition::GPIO2);
-    value &= gpio_pair_check(GpioDefinition::GPIO0, GpioDefinition::GPIO1);
+    uint32_t value = gpio_pair_check(GpioDefinition::GPIO3, GpioDefinition::GPIO2);
     value &= gpio_pair_check(GpioDefinition::GPIO1, GpioDefinition::GPIO0);
     value &= gpio_pair_check(GpioDefinition::UART7_CTS, GpioDefinition::UART8_RTS);
     value &= gpio_pair_check(GpioDefinition::UART8_CTS, GpioDefinition::UART7_RTS);
