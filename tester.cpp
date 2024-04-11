@@ -192,6 +192,11 @@ Tester::Tester(CameraGST &camera, QObject *parent) : camera_(camera), QObject(pa
 {
 }
 
+
+Tester::~Tester() {
+    
+}
+
 Tester::TestResult::TestResult() :
     microsd(Result::NotTested),
     usbc(Result::NotTested),
@@ -233,14 +238,16 @@ void Tester::receiveAction(QString info)
 void Tester::runTest(QString name)
 {
     if (verbose_logs) {
-        std::cout << "tests_starting" << std::endl;
+        
     }
+    std::cout << "tests_starting" << std::endl;
     if (name == "all") {
         QtConcurrent::run([=](){
             test();
             if (verbose_logs) {
-                std::cout << "tests_finished" << std::endl;
+                
             }
+            std::cout << "tests_finished" << std::endl;
         });
     }
     if (verbose_logs) {
@@ -314,7 +321,7 @@ Tester* Tester::tester()
 
 int Tester::startDOOM() {
     if( process_doom_.state() == QProcess::NotRunning ) {
-        // process_doom_.start("chocolate-doom -geometry 600x1024");
+        process_doom_.start("chocolate-doom -geometry 600x1024");
     } else if( process_doom_.state()  == QProcess::Running ) {
         process_doom_.close();
         QString res;
@@ -327,8 +334,8 @@ int Tester::startDOOM() {
 
 int Tester::startGLMARK() {
     if( process_glmark_.state() == QProcess::NotRunning ) {
-        // process_glmark_.start("glmark2-es2-wayland --visual-config='a=0:buf=24' --annotate --size 600x800");
-        process_glmark_.start("glmark2");
+        process_glmark_.start("glmark2-es2-wayland --visual-config='a=0:buf=24' --annotate --size 600x800");
+        // process_glmark_.start("glmark2");
     } else if( process_glmark_.state()  == QProcess::Running ) {
         process_glmark_.close();
         QString res;
@@ -342,7 +349,7 @@ int Tester::startGLMARK() {
 
 int Tester::startCPUTEST() {
     if( process_cpu_.state() == QProcess::NotRunning ) {
-        // process_cpu_.start("stress-ng --cpu 4 --cpu-method matrixprod --metrics --timeout 600");
+        process_cpu_.start("stress-ng --cpu 4 --cpu-method matrixprod --metrics --timeout 600");
     } else if( process_cpu_.state()  == QProcess::Running ) {
         process_cpu_.close();
         QString res;
@@ -398,68 +405,78 @@ bool Tester::CheckSpeedUsb(const QLoggingCategory &name(), QString cmd, int limi
 }
 
 int Tester::testEmmc()
-{
-    bool result = false;
-    QString name = "emmc";
-    singleTestResult(name, Result::Progress);
+{   
+    Result res = Result::Progress;
+    std::thread t2 = std::thread([&]() {
+        bool result = false;
+        
+        QString name = "emmc";
+        singleTestResult(name, Result::Progress);
 
-    QString emmc_path = "/dev/mmcblk1";
-    QFile handler(emmc_path);
-    if( handler.exists() ) {
-        if( QFile("/dev/mmcblk1p3").exists() ) {
-            result = CheckSpeedUsb(c_emmc, QString(map_cmd_fio.at("mmc").c_str()), 60);
-        } else {
-            QFile type_system("check_filesystem");
+        QString emmc_path = "/dev/mmcblk1";
+        QFile handler(emmc_path);
+        if( handler.exists() ) {
+            if( QFile("/dev/mmcblk1p3").exists() ) {
+                result = CheckSpeedUsb(c_emmc, QString(map_cmd_fio.at("mmc").c_str()), 60);
+            } else {
+                QFile type_system("check_filesystem");
 
-            int sys = system("fsck -N /dev/mmcblk1 | awk 'NR==2 {print $5}' > check_filesystem");
+                int sys = system("fsck -N /dev/mmcblk1 | awk 'NR==2 {print $5}' > check_filesystem");
 
-            if ( !sys ) {
-                if (type_system.open(QIODevice::ReadOnly)) {
-                    qInfo(c_emmc) << "Open file okay";
-                    std::string str_ = type_system.readAll().toStdString();
+                if ( !sys ) {
+                    if (type_system.open(QIODevice::ReadOnly)) {
+                        qInfo(c_emmc) << "Open file okay";
+                        std::string str_ = type_system.readAll().toStdString();
 
-                    if( str_ != "fsck.ext4\n" ) {
-                        system("mkfs.ext4 /dev/mmcblk1");
+                        if( str_ != "fsck.ext4\n" ) {
+                            system("mkfs.ext4 /dev/mmcblk1");
+                        }
+                        if( !QFile("/media/fatfs").exists() ) {
+                            system("mkdir /media/fatfs");
+                        }
+                        system("mount /dev/mmcblk1 /media/fatfs/ > /dev/null 2>&1");
+                        result = CheckSpeedUsb(c_emmc, QString(map_cmd_fio.at("usb").c_str()), 60);
+                    } else {
+                        qInfo(c_emmc) << "Can't open file";
                     }
-                    if( !QFile("/media/fatfs").exists() ) {
-                        system("mkdir /media/fatfs");
-                    }
-                    system("mount /dev/mmcblk1 /media/fatfs/ > /dev/null 2>&1");
-                    result = CheckSpeedUsb(c_emmc, QString(map_cmd_fio.at("usb").c_str()), 60);
-                } else {
-                    qInfo(c_emmc) << "Can't open file";
+
                 }
-
+                type_system.remove();
             }
-            type_system.remove();
         }
-    }
+        
+        res = SetResAddedLogs(c_emmc, result, "TEST Success", "Not find device of mmcblk0");
+        singleTestResult(name, res);
+    });
     
-    Result res = SetResAddedLogs(c_emmc, result, "TEST Success", "Not find device of mmcblk0");
-    singleTestResult(name, res);
-
+    t2.detach();
     return res;
 }
 
 int Tester::testMicrosd()
 {
-    bool result = false;
-    QString name = "microsd";
-    singleTestResult(name, Result::Progress);
+    
+    Result res = Result::Progress;
+    std::thread thread_([&](){
+        bool result = false;
+        QString name = "microsd";
+        singleTestResult(name, Result::Progress);
 
-    QString usd_path = "/dev/mmcblk0";
-    QFile handler(usd_path);
-    if( handler.exists() ) {
-        if( QFile("/dev/mmcblk0p3").exists() ) {
-            result = CheckSpeedUsb(c_sd, QString(map_cmd_fio.at("mmc").c_str()), 10);
+        QString usd_path = "/dev/mmcblk0";
+        QFile handler(usd_path);
+        if( handler.exists() ) {
+            if( QFile("/dev/mmcblk0p3").exists() ) {
+                result = CheckSpeedUsb(c_sd, QString(map_cmd_fio.at("mmc").c_str()), 10);
+            }
         }
-    }
 
-    Result res = SetResAddedLogs(c_sd, result, "TEST Success", "Not find device of mmcblk0");
+        Result res = SetResAddedLogs(c_sd, result, "TEST Success", "Not find device of mmcblk0");
 
 
-    singleTestResult(name, res);
+        singleTestResult(name, res);
+    });
 
+    thread_.detach();
     return res;
 }
 
@@ -497,81 +514,88 @@ bool Tester::CheckNumberUsb(int number) {
 }
 
 int Tester::testUsbC() {
-    bool result = false;
-    QString name = "usbc";
-    singleTestResult(name, Result::Progress);
-    system("umount /media/fatfs > /dev/null 2>&1");
-    if( CheckNumberUsb(2) ) {
+    
+    std::thread thread_([&](){
+        bool result = false;
+        QString name = "usbc";
+        singleTestResult(name, Result::Progress);
+        system("umount /media/fatfs > /dev/null 2>&1");
+        if( CheckNumberUsb(2) ) {
 
-        bool check_folder = (bool)system("test -d /media/fatfs");
+            bool check_folder = (bool)system("test -d /media/fatfs");
 
-        if( check_folder )
-        {
-            system("mkdir /media/fatfs");
+            if( check_folder )
+            {
+                system("mkdir /media/fatfs");
+            }
+
+            QString cmd;
+            QString usd_path = "/dev/sda1";
+            QFile handler(usd_path);
+            if( handler.exists() ) {
+                cmd = "mount /dev/sda1 /media/fatfs/ > /dev/null 2>&1";
+            } else if( QFile("/dev/sda").exists() ) {
+                cmd = "mount /dev/sda /media/fatfs/ > /dev/null 2>&1";
+            }
+            
+            int sys = system(qPrintable(cmd));
+            if (sys) {
+                qCCritical(c_usbc) << "SYSTEM MOUNT FAIL";
+            } else {
+                result = CheckSpeedUsb(c_usbc, QString(map_cmd_fio.at("usb").c_str()), 60);
+                system("umount /media/fatfs > /dev/null 2>&1");
+            }
+
         }
 
-        QString cmd;
-        QString usd_path = "/dev/sda1";
-        QFile handler(usd_path);
-        if( handler.exists() ) {
-            cmd = "mount /dev/sda1 /media/fatfs/ > /dev/null 2>&1";
-        } else if( QFile("/dev/sda").exists() ) {
-            cmd = "mount /dev/sda /media/fatfs/ > /dev/null 2>&1";
-        }
-        
-        int sys = system(qPrintable(cmd));
-        if (sys) {
-            qCCritical(c_usbc) << "SYSTEM MOUNT FAIL";
-        } else {
-            result = CheckSpeedUsb(c_usbc, QString(map_cmd_fio.at("usb").c_str()), 60);
-            system("umount /media/fatfs > /dev/null 2>&1");
-        }
+        Result res = SetResAddedLogs(c_usbc, result, "TEST Success", "Not mount file system");
+        singleTestResult(name, res);
+    });
 
-    }
-
-    Result res = SetResAddedLogs(c_usbc, result, "TEST Success", "Not mount file system");
-    singleTestResult(name, res);
-
-    return res;
+    thread_.detach();
+    return Result::Progress;
 
 }
 
 int Tester::testUsb3() 
 {
-    bool result = false;
-    QString name = "usb3";
-    singleTestResult(name, Result::Progress);
+    std::thread thread_([&](){
+        bool result = false;
+        QString name = "usb3";
+        singleTestResult(name, Result::Progress);
 
-    system("umount /media/fatfs > /dev/null 2>&1");
-    if( CheckNumberUsb(2) ) {
-        bool check_folder = (bool)system("test -d /media/fatfs");
+        system("umount /media/fatfs > /dev/null 2>&1");
+        if( CheckNumberUsb(2) ) {
+            bool check_folder = (bool)system("test -d /media/fatfs");
 
-        if( check_folder )
-        {
-            system("mkdir /media/fatfs3");
+            if( check_folder )
+            {
+                system("mkdir /media/fatfs3");
+            }
+
+            QString cmd;
+            if( QFile("/dev/sda1").exists() ) {
+                cmd = "mount /dev/sda1 /media/fatfs/ > /dev/null 2>&1";
+            } else if( QFile("/dev/sda").exists() ) {
+                cmd = "mount /dev/sda /media/fatfs/ > /dev/null 2>&1";
+            }
+
+            int sys = system(qPrintable(cmd));
+            if (sys) {
+                qCCritical(c_usb3) << "SYSTEM MOUNT FAIL";
+            } else {
+                result = CheckSpeedUsb(c_usbc, QString(map_cmd_fio.at("usb").c_str()), 60);
+            }
         }
 
-        QString cmd;
-        if( QFile("/dev/sda1").exists() ) {
-            cmd = "mount /dev/sda1 /media/fatfs/ > /dev/null 2>&1";
-        } else if( QFile("/dev/sda").exists() ) {
-            cmd = "mount /dev/sda /media/fatfs/ > /dev/null 2>&1";
-        }
+        Result res = SetResAddedLogs(c_usb3, result, "TEST Success", "Not mount file system");
 
-        int sys = system(qPrintable(cmd));
-        if (sys) {
-            qCCritical(c_usb3) << "SYSTEM MOUNT FAIL";
-        } else {
-            result = CheckSpeedUsb(c_usbc, QString(map_cmd_fio.at("usb").c_str()), 60);
-        }
-    }
+        system("umount /media/fatfs > /dev/null 2>&1");
+        singleTestResult(name, res);
+    });
 
-    Result res = SetResAddedLogs(c_usb3, result, "TEST Success", "Not mount file system");
-
-    system("umount /media/fatfs > /dev/null 2>&1");
-    singleTestResult(name, res);
-
-    return res;
+    thread_.detach();
+    return Result::Progress;
 }
 
 int Tester::testSpeaker()
@@ -587,7 +611,7 @@ int Tester::testSpeaker()
 
         singleTestResult(name, res);
     });
-
+    
     return Result::Success;
 }
 
@@ -614,120 +638,132 @@ int Tester::testCamera()
 
 int Tester::testCan()
 {
-    
-    bool result = false;
-    QString name = "can";
-    singleTestResult(name, Result::Progress);
+    std::thread thread_([&](){
+        bool result = false;
+        QString name = "can";
+        singleTestResult(name, Result::Progress);
 
-    usleep(50000);
-    if( system("ip link set can0 down > /dev/null 2>&1") ) {
-        qCWarning(c_can0) << "Link didn't set to down";
-    }
-    usleep(50000);
+        usleep(50000);
+        if( system("ip link set can0 down > /dev/null 2>&1") ) {
+            qCWarning(c_can0) << "Link didn't set to down";
+        }
+        usleep(50000);
 
-    if( system("ip link set can1 down > /dev/null 2>&1") ) {
-        qCWarning(c_can1) << "Link didn't set to down";
-    }
-    usleep(50000);
+        if( system("ip link set can1 down > /dev/null 2>&1") ) {
+            qCWarning(c_can1) << "Link didn't set to down";
+        }
+        usleep(50000);
 
-    if( system("ip link set can0 type can bitrate 125000 triple-sampling on > /dev/null 2>&1") ) {
-        qCWarning(c_can0) << "Set bitrate with triple-sampling error";
-    }
-    usleep(50000);
-    if ( system("ip link set can1 type can bitrate 125000 triple-sampling on > /dev/null 2>&1") ) {
-        qCWarning(c_can1) << "Set bitrate with triple-sampling error";
-    }
-    usleep(50000);
+        if( system("ip link set can0 type can bitrate 125000 triple-sampling on > /dev/null 2>&1") ) {
+            qCWarning(c_can0) << "Set bitrate with triple-sampling error";
+        }
+        usleep(50000);
+        if ( system("ip link set can1 type can bitrate 125000 triple-sampling on > /dev/null 2>&1") ) {
+            qCWarning(c_can1) << "Set bitrate with triple-sampling error";
+        }
+        usleep(50000);
 
-    if( system("ip link set can0 up > /dev/null 2>&1") ) {
-        qCWarning(c_can0) << "Link didn't set to up";
-    }
-    usleep(50000);
-    if( system("ip link set can1 up") ) {
-        qCWarning(c_can1) << "Link didn't set to up";
-    }
-    usleep(50000);
+        if( system("ip link set can0 up > /dev/null 2>&1") ) {
+            qCWarning(c_can0) << "Link didn't set to up";
+        }
+        usleep(50000);
+        if( system("ip link set can1 up") ) {
+            qCWarning(c_can1) << "Link didn't set to up";
+        }
+        usleep(50000);
 
-    CanThread can0("can0");
-    CanThread can1("can1");
-    sleep(1);
+        CanThread can0("can0");
+        CanThread can1("can1");
+        sleep(1);
 
-    std::thread can_recv(&CanThread::ThreadReceive, &can0);
+        std::thread can_recv(&CanThread::ThreadReceive, &can0);
 
-    std::vector<uint8_t> data_send{0x54, 0x55, 0x56, 0x57};
+        std::vector<uint8_t> data_send{0x54, 0x55, 0x56, 0x57};
 
-    can1.SendMessage({0x5A, 0x4, 0x0, data_send});
-    can_recv.join();
+        can1.SendMessage({0x5A, 0x4, 0x0, data_send});
+        can_recv.join();
 
-    if( data_send == can0.GetMessage().data )
-    {
-        result = true;
-    }
+        if( data_send == can0.GetMessage().data )
+        {
+            result = true;
+        }
 
-    
-    Result res = SetResAddedLogs(c_can, result, "TEST Success", " TEST FAIL : Read data and write data don't equal");
-    singleTestResult(name, res);
+        
+        Result res = SetResAddedLogs(c_can, result, "TEST Success", " TEST FAIL : Read data and write data don't equal");
+        singleTestResult(name, res);
+    });
 
-    return res;
+    thread_.detach();
+    return Result::Progress;
 }
 int Tester::testSpi1()
 {
-    bool result = false;
-    QString name = "spi1";
-    singleTestResult(name, Result::Progress);
+    std::thread thread_([&](){
+        bool result = false;
+        QString name = "spi1";
+        singleTestResult(name, Result::Progress);
 
-    uint32_t value = gpio_pair_check(GpioDefinition::SPI1_MISO, GpioDefinition::SPI1_MOSI);
+        uint32_t value = gpio_pair_check(GpioDefinition::SPI1_MISO, GpioDefinition::SPI1_MOSI);
 
-    Result res = SetResAddedLogs(c_spi1, value);
-    singleTestResult(name, res);
-    return res;
+        Result res = SetResAddedLogs(c_spi1, value);
+        singleTestResult(name, res);
+    });
+    thread_.detach();
+    return Result::Progress;
 }
 
 int Tester::testSpi2()
 {
-    bool result = false;
-    QString name = "spi2";
-    singleTestResult(name, Result::Progress);
+    std::thread thread_([&](){
+        bool result = false;
+        QString name = "spi2";
+        singleTestResult(name, Result::Progress);
 
-    uint32_t value = gpio_pair_check(GpioDefinition::SPI2_MISO, GpioDefinition::SPI2_MOSI);
+        uint32_t value = gpio_pair_check(GpioDefinition::SPI2_MISO, GpioDefinition::SPI2_MOSI);
 
-    Result res = SetResAddedLogs(c_spi2, value);
-    singleTestResult(name, res);
-    return res;
+        Result res = SetResAddedLogs(c_spi2, value);
+        singleTestResult(name, res);
+    });
+    thread_.detach();
+    return Result::Progress;
 }
 
 int Tester::testNvme()
 {
-    bool result = false;
-    QString name = "nvme";
-    singleTestResult(name, Result::Progress);
-    auto status = system("test_nvme.sh > /dev/null 2>&1");
+    std::thread thread_([&](){
+        bool result = false;
+        QString name = "nvme";
+        singleTestResult(name, Result::Progress);
+        auto status = system("test_nvme.sh > /dev/null 2>&1");
 
-    if( status == 0 )
-    {
-        result = true;
-    } 
-    Result res = SetResAddedLogs(c_nvme, result);
-    singleTestResult(name, res);
-
-    return res;
+        if( status == 0 )
+        {
+            result = true;
+        } 
+        Result res = SetResAddedLogs(c_nvme, result);
+        singleTestResult(name, res);
+    });
+    thread_.detach();
+    return Result::Progress;
 }
 
 int Tester::testWlan()
 {
-    bool result = false;
-    QString name = "wlan";
-    singleTestResult(name, Result::Progress);
-    auto status = system("test_wlan_small.sh > /dev/null 2>&1");
+    std::thread thread_([&](){
+        bool result = false;
+        QString name = "wlan";
+        singleTestResult(name, Result::Progress);
+        auto status = system("test_wlan_small.sh > /dev/null 2>&1");
 
-    if( status == 0 )
-    {
-        result = true;
-    } 
-    Result res = SetResAddedLogs(c_wlan, result);
-    singleTestResult(name, res);
-
-    return res;
+        if( status == 0 )
+        {
+            result = true;
+        } 
+        Result res = SetResAddedLogs(c_wlan, result);
+        singleTestResult(name, res);
+    });
+    thread_.detach();
+    return Result::Progress;
 }
 
 
@@ -782,44 +818,50 @@ int Tester::testUart(int uart1, int uart2, bool check)
 
 int Tester::testUart78()
 {
-    bool result = false;
-    QString name = "uart78";
-    singleTestResult(name, Result::Progress);
+    std::thread thread_([&](){
+        bool result = false;
+        QString name = "uart78";
+        singleTestResult(name, Result::Progress);
 
-    if( testUart(7, 8, true) )
-    {
-        result = true;
-    }
-    Result res = SetResAddedLogs(c_uart, result);
-    singleTestResult(name, res);
-
-    return res;
+        if( testUart(7, 8, true) )
+        {
+            result = true;
+        }
+        Result res = SetResAddedLogs(c_uart, result);
+        singleTestResult(name, res);
+    });
+    thread_.detach();
+    return Result::Progress;
 }
 
 int Tester::testUart39()
 {
-    bool result = false;
-    QString name = "uart39";
-    singleTestResult(name, Result::Progress);
+    std::thread thread_([&](){
+        bool result = false;
+        QString name = "uart39";
+        singleTestResult(name, Result::Progress);
 
-    if( testUart(3, 9, false ) )
-    {
-        result = true;
-    }
-    Result res = SetResAddedLogs(c_uart, result);
-    singleTestResult(name, res);
-
-    return res;
+        if( testUart(3, 9, false ) )
+        {
+            result = true;
+        }
+        Result res = SetResAddedLogs(c_uart, result);
+        singleTestResult(name, res);
+    });
+    thread_.detach();
+    return Result::Progress;
 }
 
 int Tester::testPcie()
 {
-    bool result = true;
-    QString name = "pcie";
-    Result res = (result) ? Result::Success : Result::Failed;
-    singleTestResult(name, res);
-
-    return res;
+    std::thread thread_([&](){
+        bool result = true;
+        QString name = "pcie";
+        Result res = (result) ? Result::Success : Result::Failed;
+        singleTestResult(name, res);
+    });
+    thread_.detach();
+    return Result::Progress;
 }
 
 
@@ -834,49 +876,52 @@ inline void set_pwm(int val) {
 
 int Tester::testEthernet()
 {
-    bool result = false, sys = false;
-    QString name = "ethernet";
-    singleTestResult(name, Result::Progress);
+    std::thread thread_([&](){
+        bool result = false, sys = false;
+        QString name = "ethernet";
+        singleTestResult(name, Result::Progress);
 
-    QFile cur("ethernet");
+        QFile cur("ethernet");
 
-    system("ip netns add ns_server 1>/dev/null 2>/dev/null");
-    system("ip netns add ns_client 1>/dev/null 2>/dev/null");
-    system("ip link set end0 netns ns_server 1>/dev/null 2>/dev/null");
-    system("ip netns exec ns_server ip addr add dev end0 192.168.1.198/24 1>/dev/null 2>/dev/null");
-    system("ip netns exec ns_server ip link set dev end0 up 1>/dev/null 2>/dev/null");
-    system("ip link set end1 netns ns_client 1>/dev/null 2>/dev/null");
-    system("ip netns exec ns_client ip addr add dev end1 192.168.1.197/24 1>/dev/null 2>/dev/null");
-    system("ip netns exec ns_client ip link set dev end1 up 1>/dev/null 2>/dev/null");
-    system("ip netns exec ns_server iperf -s -B 192.168.1.198 1>/dev/null 2>/dev/null &");
-    usleep(50000);
+        system("ip netns add ns_server 1>/dev/null 2>/dev/null");
+        system("ip netns add ns_client 1>/dev/null 2>/dev/null");
+        system("ip link set end0 netns ns_server 1>/dev/null 2>/dev/null");
+        system("ip netns exec ns_server ip addr add dev end0 192.168.1.198/24 1>/dev/null 2>/dev/null");
+        system("ip netns exec ns_server ip link set dev end0 up 1>/dev/null 2>/dev/null");
+        system("ip link set end1 netns ns_client 1>/dev/null 2>/dev/null");
+        system("ip netns exec ns_client ip addr add dev end1 192.168.1.197/24 1>/dev/null 2>/dev/null");
+        system("ip netns exec ns_client ip link set dev end1 up 1>/dev/null 2>/dev/null");
+        system("ip netns exec ns_server iperf -s -B 192.168.1.198 1>/dev/null 2>/dev/null &");
+        usleep(50000);
 
-    sys = system("ip netns exec ns_client iperf -c 192.168.1.198 -B 192.168.1.197 > ethernet &");
-    sleep(20);
-    if( !sys ) {
-        if (cur.open(QIODevice::ReadOnly)) {
-            QFile speed_eth("speed_eth");
-            system("awk 'NR==7 {print $7}' ethernet > speed_eth");
+        sys = system("ip netns exec ns_client iperf -c 192.168.1.198 -B 192.168.1.197 > ethernet &");
+        sleep(20);
+        if( !sys ) {
+            if (cur.open(QIODevice::ReadOnly)) {
+                QFile speed_eth("speed_eth");
+                system("awk 'NR==7 {print $7}' ethernet > speed_eth");
 
-            if( speed_eth.open(QIODevice::ReadOnly) ) {
-                QByteArray data = speed_eth.readAll();
-                QString res = QString(data);
-                if( res.toInt() > 900 ) {
-                    result = true;
-                }
-            }   
+                if( speed_eth.open(QIODevice::ReadOnly) ) {
+                    QByteArray data = speed_eth.readAll();
+                    QString res = QString(data);
+                    if( res.toInt() > 900 ) {
+                        result = true;
+                    }
+                }   
+            }
         }
-    }
-    
-    system("killall iperf");
+        
+        system("killall iperf");
 
-    system("ip netns del ns_server");
-    system("ip netns del ns_client");
+        system("ip netns del ns_server");
+        system("ip netns del ns_client");
 
-    usleep(50000);
-    Result res = SetResAddedLogs(c_eth, result);
-    singleTestResult(name, res);
-    return res;
+        usleep(50000);
+        Result res = SetResAddedLogs(c_eth, result);
+        singleTestResult(name, res);
+    });
+    thread_.detach();
+    return Result::Progress;
 }
 
 int Tester::init()
@@ -946,19 +991,19 @@ int Tester::test()
     QDateTime now;
     results.date = now.date().toString();
 
-    // results.microsd = static_cast<Result>(testMicrosd());
-    // results.emmc = static_cast<Result>(testEmmc());
-    // results.gpio = static_cast<Result>(testGPIO());
-    // results.ethernet = static_cast<Result>(testEthernet());
-    // results.can = static_cast<Result>(testCan());
-    // results.usbc = static_cast<Result>(testUsbC());
-    // results.usb3 = static_cast<Result>(testUsb3());
-    // results.spi1 = static_cast<Result>(testSpi1());
-    // results.spi2 = static_cast<Result>(testSpi2());
-    // results.nvme = static_cast<Result>(testNvme());
-    // results.wlan = static_cast<Result>(testWlan());
-    // results.uart78 = static_cast<Result>(testUart78());
-    // results.uart39 = static_cast<Result>(testUart39());
+    results.microsd = static_cast<Result>(testMicrosd());
+    results.emmc = static_cast<Result>(testEmmc());
+    results.gpio = static_cast<Result>(testGPIO());
+    results.ethernet = static_cast<Result>(testEthernet());
+    results.can = static_cast<Result>(testCan());
+    results.usbc = static_cast<Result>(testUsbC());
+    results.usb3 = static_cast<Result>(testUsb3());
+    results.spi1 = static_cast<Result>(testSpi1());
+    results.spi2 = static_cast<Result>(testSpi2());
+    results.nvme = static_cast<Result>(testNvme());
+    results.wlan = static_cast<Result>(testWlan());
+    results.uart78 = static_cast<Result>(testUart78());
+    results.uart39 = static_cast<Result>(testUart39());
     
     
 
@@ -1120,33 +1165,36 @@ uint32_t Tester::gpio_pair_check(GpioDefinition in, GpioDefinition out)
 
 int Tester::testGPIO()
 {
-    bool result = false;
-    QString name = "gpio";
-    singleTestResult(name, Result::Progress);
+    std::thread thread_([&](){
+        bool result = false;
+        QString name = "gpio";
+        singleTestResult(name, Result::Progress);
 
-    uint32_t value = gpio_pair_check(GpioDefinition::GPIO3, GpioDefinition::GPIO2);
-    value &= gpio_pair_check(GpioDefinition::GPIO1, GpioDefinition::GPIO0);
-    value &= gpio_pair_check(GpioDefinition::UART7_CTS, GpioDefinition::UART8_RTS);
-    value &= gpio_pair_check(GpioDefinition::UART8_CTS, GpioDefinition::UART7_RTS);
+        uint32_t value = gpio_pair_check(GpioDefinition::GPIO3, GpioDefinition::GPIO2);
+        value &= gpio_pair_check(GpioDefinition::GPIO1, GpioDefinition::GPIO0);
+        value &= gpio_pair_check(GpioDefinition::UART7_CTS, GpioDefinition::UART8_RTS);
+        value &= gpio_pair_check(GpioDefinition::UART8_CTS, GpioDefinition::UART7_RTS);
 
-    init_gpio(static_cast<int>(GpioDefinition::UART3_CTS), "in", 0);
-    init_gpio(static_cast<int>(GpioDefinition::UART3_RTS), "out", 0);
-    init_gpio(static_cast<int>(GpioDefinition::SPI2_CS0), "out", 0);
-    init_gpio(static_cast<int>(GpioDefinition::SPI2_CS1), "out", 0);
-    init_gpio(static_cast<int>(GpioDefinition::SPI1_CS0), "out", 0);
-    init_gpio(static_cast<int>(GpioDefinition::SPI1_CLK), "out", 0);
-    init_gpio(static_cast<int>(GpioDefinition::SPI2_CLK), "out", 0);
+        init_gpio(static_cast<int>(GpioDefinition::UART3_CTS), "in", 0);
+        init_gpio(static_cast<int>(GpioDefinition::UART3_RTS), "out", 0);
+        init_gpio(static_cast<int>(GpioDefinition::SPI2_CS0), "out", 0);
+        init_gpio(static_cast<int>(GpioDefinition::SPI2_CS1), "out", 0);
+        init_gpio(static_cast<int>(GpioDefinition::SPI1_CS0), "out", 0);
+        init_gpio(static_cast<int>(GpioDefinition::SPI1_CLK), "out", 0);
+        init_gpio(static_cast<int>(GpioDefinition::SPI2_CLK), "out", 0);
 
-    value &= gpio_pair_check(GpioDefinition::UART3_CTS, GpioDefinition::UART3_RTS);
-    value &= gpio_pair_check(GpioDefinition::UART3_CTS, GpioDefinition::SPI2_CS0);
-    value &= gpio_pair_check(GpioDefinition::UART3_CTS, GpioDefinition::SPI2_CS1);
-    value &= gpio_pair_check(GpioDefinition::UART3_CTS, GpioDefinition::SPI1_CS0);
-    value &= gpio_pair_check(GpioDefinition::UART3_CTS, GpioDefinition::SPI2_CLK);
-    value &= gpio_pair_check(GpioDefinition::UART3_CTS, GpioDefinition::SPI1_CLK);
+        value &= gpio_pair_check(GpioDefinition::UART3_CTS, GpioDefinition::UART3_RTS);
+        value &= gpio_pair_check(GpioDefinition::UART3_CTS, GpioDefinition::SPI2_CS0);
+        value &= gpio_pair_check(GpioDefinition::UART3_CTS, GpioDefinition::SPI2_CS1);
+        value &= gpio_pair_check(GpioDefinition::UART3_CTS, GpioDefinition::SPI1_CS0);
+        value &= gpio_pair_check(GpioDefinition::UART3_CTS, GpioDefinition::SPI2_CLK);
+        value &= gpio_pair_check(GpioDefinition::UART3_CTS, GpioDefinition::SPI1_CLK);
 
-    Result res = SetResAddedLogs(c_gpio, value);
-    singleTestResult(name, res);
-    return res;
+        Result res = SetResAddedLogs(c_gpio, value);
+        singleTestResult(name, res);
+    });
+    thread_.detach();
+    return Result::Progress;
 }
 
 void Tester::printResults()
@@ -1247,7 +1295,6 @@ void Tester::singleTestResult(QString name, Result value)
     QVariantMap data;
     data["name"] = name;
     data["value"] = value;
-
     emit singleTestFinished(QVariant(data));
 }
 

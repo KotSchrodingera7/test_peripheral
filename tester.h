@@ -6,6 +6,8 @@
 #include <QVariant>
 #include <QVariantMap>
 #include <QProcess>
+
+#include <thread>
 // #include <QSerialPort>
 #include <unordered_map>
 #include "check_cpu.h"
@@ -121,6 +123,7 @@ private:
     QString temp_;
 
     CheckCpu freq_cpu_;
+    std::thread t1;
 
     std::unordered_map<GpioDefinition, std::string> gpio_definition_;
 
@@ -129,6 +132,7 @@ public slots:
 
 public:
     explicit Tester(CameraGST &camera, QObject *parent = nullptr);
+    ~Tester();
 
     Tester* tester();
     QString addr();

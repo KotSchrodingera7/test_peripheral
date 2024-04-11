@@ -8,8 +8,6 @@ Item {
     property alias button_icon: button_icon
     property alias button_text: button_text
 
-    // property alias animation: animation
-
     property string font_color: "#969696"
     property string success_color: "#37A439"
     property string failed_color: "#E91E63"
@@ -20,12 +18,8 @@ Item {
     function setVisible(value) {
         if (value === true) {
             button_text.visible = true
-            // animation.start()
-            // animation.running = true
         } else if( value == false) {
             button_text.visible = false
-            // animation.stop()
-            // animation.running = false
         }
     }
     
@@ -53,13 +47,6 @@ Item {
                 PropertyAnimation { to: "white" }
                 PropertyAnimation { to: "red" }
             }
-            // PropertyAnimation { 
-            //     id: animation;
-            //     target: button_text;
-            //     property: "color";
-            //     to: "white";
-            //     duration: 500
-            // }
         }
 
         background: Rectangle {

@@ -183,97 +183,6 @@ Window {
                     text: "not started"
                 }
             }
-
-            RowLayout {
-                anchors.leftMargin: 32
-                anchors.rightMargin: 16
-                spacing: 16
-                Layout.fillWidth: true
-                Layout.alignment: Qt.AlignJustify
-
-                Label {
-                    id: addrText
-
-                    font.capitalization: Font.AllUppercase
-                    font.pixelSize: 24
-                    font.bold: true
-                    font.family: "Inter"
-
-                    color: font_color
-
-                    text: tester.addr
-                }
-            }
-
-            RowLayout {
-                anchors.leftMargin: 32
-                anchors.rightMargin: 32
-                spacing: 16
-                Layout.fillWidth: true
-                Layout.alignment: Qt.AlignJustify
-
-                Label {
-                    id: targetIpLabel
-
-                    font.capitalization: Font.AllUppercase
-                    font.pixelSize: 24
-                    font.bold: true
-                    font.family: "Inter"
-
-                    color: font_color
-
-                    text: "Ping target: "
-                }
-
-                Label {
-                    id: targetIpText
-
-                    font.capitalization: Font.AllUppercase
-                    font.pixelSize: 24
-                    font.bold: true
-                    font.family: "Inter"
-
-                    color: font_color
-
-                    text: tester.targetIp
-                }
-            }
-
-            RowLayout {
-                anchors.leftMargin: 32
-                anchors.rightMargin: 32
-                spacing: 16
-                Layout.fillWidth: true
-                Layout.alignment: Qt.AlignJustify
-
-                Label {
-                    id: cardNumberLabel
-                    visible: false
-
-                    font.capitalization: Font.AllUppercase
-                    font.pixelSize: 24
-                    font.bold: true
-                    font.family: "Inter"
-
-                    color: font_color
-
-                    text: "Requested card: "
-                }
-
-                Label {
-                    id: cardNumberText
-                    visible: false
-
-                    font.capitalization: Font.AllUppercase
-                    font.pixelSize: 24
-                    font.bold: true
-                    font.family: "Inter"
-
-                    color: font_color
-
-                    text: tester.cardNumber
-                }
-            }
         }
 
         Column {
@@ -285,13 +194,13 @@ Window {
             TestRow {
                 id: microsd_test
                 title: "Micro SD"
-                restart.onClicked: function () { setValue(tester.testMicrosd()) }
+                restart.onClicked: function () { microsd_test.setValue(tester.testMicrosd()) }
             }
 
             TestRow {
                 id: emmc_test
                 title: "EMMC"
-                restart.onClicked: function () { setValue(tester.testEmmc()) }
+                restart.onClicked: function () { tester.testEmmc() }
             }
 
 
@@ -370,25 +279,6 @@ Window {
                 title: "UART3-9"
                 restart.onClicked: function () { setValue(tester.testUart39()) }
             }
-
-            // TestRow {
-            //     id: gpio1_test
-            //     title: "SPI2_CS0-UART3_IO_IN"
-            //     restart.onClicked: function () { setValue(tester.testGpio1()) }
-            // }
-
-            // TestRow {
-            //     id: gpio2_test
-            //     title: "SPI2_CS1-UART3_IO_IN"
-            //     restart.onClicked: function () { setValue(tester.testGpio2()) }
-            // }
-
-            // TestRow {
-            //     id: gpio3_test
-            //     title: "UART3_IO_OUT-UART3_IO_IN"
-            //     restart.onClicked: function () { setValue(tester.testGpio3()) }
-            // }
-
         }
 
         Column {
@@ -400,7 +290,7 @@ Window {
             Row {
                 id: colorsRow
                 anchors.horizontalCenter : parent.horizontalCenter
-                visible: false
+                visible: true
                 spacing: 32
 
                 Rectangle {
@@ -455,7 +345,7 @@ Window {
             Row {
                 id: buttonsRow
                 anchors.horizontalCenter: parent.horizontalCenter
-                visible: false
+                visible: true
                 spacing: 32
 
                 Button {
@@ -516,13 +406,13 @@ Window {
     Timer {
         id: autotest_timer
         running: true
-        interval: 3000
+        interval: 100
         repeat: false
         onTriggered: function() {
             autotest_text.text = "Тест запущен"
             statusText.text = "Running"
             statusText.color = "white"
-            tester.runTest("all")
+            // tester.runTest("all")
         }
     }
 
@@ -547,11 +437,11 @@ Window {
         onNeedAction: showNeededAction(results)
         onFreqUpdate: setFreqAction(result)
         onStatusProcess: {
-            if( value == "glmark") {
+            if( value === "glmark") {
                 glmark.setVisible(false)
-            } else if( value == "doom") {
+            } else if( value === "doom") {
                 doom_id.setVisible(false)
-            } else if("load_cpu") {
+            } else if(value === "load_cpu") {
                 load_cpu.setVisible(false);
             }
         }
@@ -629,9 +519,9 @@ Window {
     //            statusText.color = "red"
         }
 
-        autotest_text.text = "Для повторной проверки\nподсветки, звука\nвоспользуйтесь кнопками"
-        buttonsRow.visible = true
-        colorsRow.visible = true
+        autotest_text.text = "Для проверки звука\nвоспользуйтесь кнопкой"
+        // buttonsRow.visible = true
+        // colorsRow.visible = true
     }
 
     function parseSingleTest(results) {
@@ -697,21 +587,15 @@ Window {
             spi1_test.setValue(value)
         } else if (name === "spi2") {
             spi2_test.setValue(value)
-        } else if( name == "nvme" ) {
+        } else if( name === "nvme" ) {
             nvme_test.setValue(value)
-        } else if( name == "uart78" ) {
+        } else if( name === "uart78" ) {
             uart78_test.setValue(value)
-        } else if( name == "uart39" ) {
+        } else if( name === "uart39" ) {
             uart39_test.setValue(value)
-        // } else if( name == "gpio1" ) {
-        //     gpio1_test.setValue(value)
-        // } else if( name == "gpio2" ) {
-        //     gpio2_test.setValue(value)
-        // } else if( name == "gpio3" ) {
-        //     gpio3_test.setValue(value)
-        } else if( name == "wlan" ) {
+        } else if( name === "wlan" ) {
             wlan_test.setValue(value)
-        } else if ( name == "emmc" ) {
+        } else if ( name === "emmc" ) {
             emmc_test.setValue(value);
         }
     }
