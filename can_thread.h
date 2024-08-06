@@ -9,11 +9,6 @@
 
 class CanThread
 {
-    std::shared_ptr<CanBus> device_;
-
-    CanFrame msg_;
-
-    std::string name_;
 public:
     CanThread(const std::string &name) 
     {
@@ -36,6 +31,13 @@ public:
     {
         return msg_;
     }
+
+private:
+    std::shared_ptr<CanBus> device_;
+
+    CanFrame msg_;
+
+    std::string name_;
 };
 
 #endif //__CAN_THREAD_H__

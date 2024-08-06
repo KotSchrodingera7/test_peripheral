@@ -33,8 +33,6 @@
 //#define DEBUG
 #define MAX_BUF 100
 #define BUF_SIZ 255
-#define CONFIG "/usr/local/biosmart/quasar-test.conf"
-#define LOG "/usr/local/biosmart/quasar-test.log"
 
 bool verbose_logs = false;
 
