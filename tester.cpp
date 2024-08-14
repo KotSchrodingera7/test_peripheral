@@ -9,10 +9,7 @@
 #include <QDateTime>
 #include <QtConcurrent/QtConcurrent>
 
-// #include "face3drfid.h"
-// #include "face3dwiegand.h"
 #include "can_thread.h"
-#include "spi_test.h"
 #include "test_uart.h"
 #include "logger.h"
 
