@@ -28,8 +28,6 @@
 //#define DEBUG
 #define MAX_BUF 100
 #define BUF_SIZ 255
-#define CONFIG "/usr/local/biosmart/quasar-test.conf"
-#define LOG "/usr/local/biosmart/quasar-test.log"
 
 bool verbose_logs = false;
 
@@ -87,7 +85,6 @@ void write_log(QString &data) {
     cmd.append("echo \'");
     cmd.append(data);
     cmd.append("\' >> ");
-    cmd.append(LOG);
     system(qPrintable(cmd));
 }
 
@@ -134,10 +131,6 @@ QString default_ip_target() {
     }
 
     return ip;
-}
-
-void attention() {
-    system("aplay /usr/local/biosmart/sounds/ok.wav > /dev/null 2>&1");
 }
 
 int run_cmd(const char *cmd, char lines[][BUF_SIZ]) {
@@ -807,7 +800,6 @@ int Tester::init()
         cmd.append(QDateTime::currentDateTime().toString());
         cmd.append("\n\'");
         cmd.append(" > ");
-        cmd.append(LOG);
         system(qPrintable(cmd));
     }
 
@@ -857,7 +849,6 @@ int Tester::test()
     results.ethernet = static_cast<Result>(testEthernet());
     results.can = static_cast<Result>(testCan());
     results.usbc = static_cast<Result>(testUsbC());
-    // results.usb3 = static_cast<Result>(testUsb3());
     results.spi1 = static_cast<Result>(testSpi1());
     results.spi2 = static_cast<Result>(testSpi2());
     results.nvme = static_cast<Result>(testNvme());

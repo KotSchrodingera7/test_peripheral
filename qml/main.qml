@@ -389,8 +389,7 @@ Window {
 
                 text: "Завершить"
                 onClicked: function() {
-                    tester.testTouchscreen()
-                    enabled = false
+                    Qt.callLater(Qt.quit)
                 }
             }
         }

@@ -19,6 +19,8 @@ int main(int argc, char *argv[])
     Tester *tester = new Tester();
     tester->init();
 
+    QObject::connect(&engine, &QQmlApplicationEngine::quit, &QGuiApplication::quit);
+    
     ctx->setContextProperty("tester", tester);
 
     qmlRegisterUncreatableType<Tester>
