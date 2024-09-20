@@ -1,9 +1,9 @@
 
 cmake_minimum_required(VERSION 3.5)
 
-set(CMAKE_TOOLCHAIN_FILE /home/alex/Projects/macro_group/bsp/output/ds-rk3568-evb/host/share/buildroot/toolchainfile.cmake)
+set(CMAKE_TOOLCHAIN_FILE /home/alex/Project/diasom/buildroot/output/ds-rk3568-introdaction/host/share/buildroot/toolchainfile.cmake)
 
-project(tester)
+project(expo_view)
 
 
 set(CMAKE_CXX_STANDARD 17)
@@ -29,7 +29,7 @@ include_directories (${GSTREAMER_INCLUDE_DIRS})
 
 # find_package(pthread REQUIRED)
 
-add_executable(tester main.cpp 
+add_executable(expo_view main.cpp 
                         tester.cpp 
                         canbus.cpp
                         camera_gst.cpp 
@@ -39,6 +39,6 @@ add_executable(tester main.cpp
                         test_uart.cpp
                         logger.cpp)
 
-target_link_libraries(tester -lm -ldl Qt5::Core Qt5::Quick Qt5::Qml Qt5::Widgets ${GST_APP_LIBRARIES} ${GST_VIDEO_LIBRARIES})
-set_property(TARGET tester PROPERTY AUTOMOC ON)
+target_link_libraries(expo_view -lm -ldl Qt5::Core Qt5::Quick Qt5::Qml Qt5::Widgets ${GST_APP_LIBRARIES} ${GST_VIDEO_LIBRARIES})
+set_property(TARGET expo_view PROPERTY AUTOMOC ON)
 

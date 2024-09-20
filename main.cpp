@@ -66,8 +66,8 @@ int main(int argc, char *argv[])
             ("macro.tester", 1, 0, "Tester",
              QStringLiteral("Tester should not be created in QML"));
 
-    const QUrl url(QStringLiteral("/usr/local/share/main.qml"));
-    // const QUrl url(QStringLiteral("../main.qml"));
+    const QUrl url(QStringLiteral("/usr/local/share/qml/ExpoMain.qml"));
+    // const QUrl url(QStringLiteral("../qml/ExpoMain.qml"));
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,
                      &app, [url](QObject *obj, const QUrl &objUrl) {
         if (!obj && url == objUrl)
@@ -79,7 +79,6 @@ int main(int argc, char *argv[])
     const QQuickWindow *rootObject = static_cast<QQuickWindow *> (engine.rootObjects().first());
     QQuickItem *videoItem = rootObject->findChild<QQuickItem *> ("videoItem");
     camera_.ObjectSet(camera_.GetSinkElement(), "widget", videoItem, NULL);
-
     
 
     QObject::connect(rootObject, &QQuickWindow::sceneGraphInitialized,

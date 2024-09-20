@@ -2,6 +2,7 @@
 #define __SPI_TEST_H__
 
 #include <string>
+#include <cstdint>
 
 class SpiTest
 {

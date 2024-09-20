@@ -24,7 +24,7 @@ void Logger::init() {
 	// Create log file
 	logFile = new QFile;
 	logFile->setFileName("/root/test_log.log");
-	// logFile->setFileName("~/Project/macro_group/test_log.log");
+	// logFile->setFileName("/home/alex/Project/test_log.log");
 	logFile->open(QIODevice::Append | QIODevice::Text);
 
 	// Redirect logs to messageOutput

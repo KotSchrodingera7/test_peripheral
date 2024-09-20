@@ -15,9 +15,9 @@ cmake ../
 make -j20
 
 
-if [ -z "$1" ]
-  then
-    scp tester root@192.168.4.33:/usr/local/bin
-    scp ../*.qml root@192.168.4.33:/usr/local/share
+if [ -n "$1" ]; then
+    scp expo_view root@$1:/usr/bin
+    scp ../qml/*.qml root@$1:/usr/local/share/qml
+    scp ../icons/*.png ../icons/*.svg root@$1:/usr/local/share/icons
 fi
 

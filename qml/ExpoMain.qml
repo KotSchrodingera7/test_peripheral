@@ -38,23 +38,23 @@ Window {
         Column  {
             id: getting_info;
             spacing: 5
-            InfoCpu {
+            ExpoInfoCpu {
                 id: infoText
                 inner_text: "Temp " + tester.temp + "°C "
             }
-            InfoCpu {
+            ExpoInfoCpu {
                 id: infoCPU0
                 inner_text: "CPU0 :"
             }
-            InfoCpu {
+            ExpoInfoCpu {
                 id: infoCPU1
                 inner_text: "CPU1 :"
             }
-            InfoCpu {
+            ExpoInfoCpu {
                 id: infoCPU2
                 inner_text: "CPU2 :"
             }
-            InfoCpu {
+            ExpoInfoCpu {
                 id: infoCPU3
                 inner_text: "CPU3 :"
             }
@@ -96,7 +96,7 @@ Window {
         }
     }
 
-    TestIcons {
+    ExpoIcons {
         id: doom_id
         anchors.left: parent.left
         anchors.leftMargin: 250
@@ -106,7 +106,7 @@ Window {
             tester.startDOOM();
         }
     }
-    TestIcons {
+    ExpoIcons {
         id: glmark
         anchors.left: parent.left
         anchors.leftMargin: 350
@@ -116,7 +116,7 @@ Window {
             tester.startGLMARK();
         }
     }
-    TestIcons {
+    ExpoIcons {
         id: load_cpu
         anchors.left: parent.left
         anchors.leftMargin: 450
@@ -191,20 +191,20 @@ Window {
             visible:true;
 
             spacing: 2
-            TestRow {
+            ExpoRow {
                 id: microsd_test
                 title: "Micro SD"
                 restart.onClicked: function () { microsd_test.setValue(tester.testMicrosd()) }
             }
 
-            TestRow {
+            ExpoRow {
                 id: emmc_test
                 title: "EMMC"
                 restart.onClicked: function () { tester.testEmmc() }
             }
 
 
-            TestRow {
+            ExpoRow {
                 enabled: false
                 visible: false
                 id: touchscreen_test
@@ -212,31 +212,31 @@ Window {
                 restart.onClicked: function () { setValue(tester.testTouchscreen()) }
             }
 
-            TestRow {
+            ExpoRow {
                 id: gpio_test
                 title: "GPIO"
                 restart.onClicked: function () { setValue(tester.testGPIO()) }
             }
 
-            TestRow {
+            ExpoRow {
                 id: ethernet_test
                 title: "Ethernet"
                 restart.onClicked: function () { setValue(tester.testEthernet()) }
             }
 
-            TestRow {
+            ExpoRow {
                 id: can_test
                 title: "Can"
                 restart.onClicked: function () { setValue(tester.testCan()) }
             }
 
-            TestRow {
+            ExpoRow {
                 id: usbc_test
                 title: "USB-C"
                 restart.onClicked: function () { setValue(Tester.Progress); setValue(tester.testUsbC()) }
             }
 
-            TestRow {
+            ExpoRow {
                 enabled: false
                 visible: false
                 id: usb3_test
@@ -244,37 +244,37 @@ Window {
                 restart.onClicked: function () { setValue(tester.testUsb3()) }
             }
 
-            TestRow {
+            ExpoRow {
                 id: spi1_test
                 title: "SPI1"
                 restart.onClicked: function () { setValue(tester.testSpi1()) }
             }
 
-            TestRow {
+            ExpoRow {
                 id: spi2_test
                 title: "SPI2"
                 restart.onClicked: function () { setValue(tester.testSpi2()) }
             }
 
-            TestRow {
+            ExpoRow {
                 id: nvme_test
                 title: "NVME"
                 restart.onClicked: function () { setValue(tester.testNvme()) }
             }
 
-            TestRow {
+            ExpoRow {
                 id: wlan_test
                 title: "WLAN"
                 restart.onClicked: function () { setValue(tester.testWlan()) }
             }
 
-            TestRow {
+            ExpoRow {
                 id: uart78_test
                 title: "UART7-8"
                 restart.onClicked: function () { setValue(tester.testUart78()) }
             }
 
-            TestRow {
+            ExpoRow {
                 id: uart39_test
                 title: "UART3-9"
                 restart.onClicked: function () { setValue(tester.testUart39()) }
@@ -323,25 +323,6 @@ Window {
                 anchors.horizontalCenter: parent.horizontalCenter
             }
 
-    //            Label {
-    //                id: buttonsText
-    //                anchors.horizontalCenter: parent.horizontalCenter
-    //                visible: false
-
-    //                padding: 8
-    //                Layout.fillWidth: true
-    //                Layout.alignment: Qt.AlignRight
-
-    //                font.capitalization: Font.AllUppercase
-    //                font.pixelSize: 28
-    //                font.bold: true
-    //                font.family: "Inter"
-
-    //                color: "white"
-
-    //                text: "Проверка"
-    //            }
-
             Row {
                 id: buttonsRow
                 anchors.horizontalCenter: parent.horizontalCenter
@@ -366,24 +347,6 @@ Window {
                         buttonsRow.enabled = false
                     }
                 }
-
-                // Button {
-                //     id: camera_button
-                //     width: 200
-                //     height: 50
-
-                //     background: Rectangle {
-                //         id: bg_camera_button
-                //         anchors.fill: parent
-                //         color: "white"
-                //     }
-                //     text: "Камера"
-                //     onClicked: function() {
-                //         bg_camera_button.color = font_color
-                //         tester.testCamera()
-                //         buttonsRow.enabled = false
-                //     }
-                // }
             }
 
             Button {
@@ -422,9 +385,6 @@ Window {
         interval: 1000
         repeat: true
         onTriggered: function() {
-            // autotest_text.text = "Тест запущен"
-            // statusText.text = "Running"
-            // statusText.color = "white"
             tester.getTemp()
             tester.updateFreq();
         }
@@ -446,11 +406,6 @@ Window {
             }
         }
     }
-
-    // function showNeededAction(results) {
-
-    //     infoText.text = result
-    // }
 
     function setFreqAction(results) {
         var data = results
@@ -481,20 +436,9 @@ Window {
         emmc_test.setValue(data["emmc"])
         usbc_test.setValue(data["usbc"])
         usb3_test.setValue(data["usb3"])
-        // lsd_test.setValue(data["lsd"])
         touchscreen_test.setValue(data["touchscreen"])
-        // rfid_test.setValue(data["rfid"])
-        // rs485_test.setValue(data["rs485"])
-        // tmpr_test.setValue(data["tmpr"])
-        // iprst_test.setValue(data["iprst"])
-        // relay_test.setValue(data["relay"])
         gpio_test.setValue(data["gpio"])
         can_test.setValue(data["can"])
-        // wiegand_test.setValue(data["wiegand"])
-        // speaker_test.setValue(data["speaker"])
-        // led_test.setValue(data["led"])
-        // rtc_test.setValue(data["rtc"])
-        // eeprom_test.setValue(data["eeprom"])
         ethernet_test.setValue(data["ethernet"])
         spi1_test.setValue(data["spi1"])
         spi2_test.setValue(data["spi2"])
@@ -503,25 +447,13 @@ Window {
         uart78_test.setValue(data["uart78"])
         uart39_test.setValue(data["uart39"])
 
-        // gpio1_test.setValue(data["gpio1"])
-        // gpio2_test.setValue(data["gpio2"])
-        // gpio3_test.setValue(data["gpio3"])
-        // tamper_test.setValue(data["tamper"])
-        // usbhub_test.setValue(data["usbhub"])
-
-   // usbhub_test.setValue(data["usbhub"])
         if ((data["failed"] === 0 && allow_error) || (data["error"] === 0 && data["failed"])) {
-            success = true//            statusText.text = "Success"
-    //            statusText.color = "green"
+            success = true
         } else {
             success = false
-    //            statusText.text = "Failed"
-    //            statusText.color = "red"
         }
 
         autotest_text.text = "Для проверки звука\nвоспользуйтесь кнопкой"
-        // buttonsRow.visible = true
-        // colorsRow.visible = true
     }
 
     function parseSingleTest(results) {

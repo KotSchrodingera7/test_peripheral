@@ -8,6 +8,7 @@
 #include <numeric>
 #include <cmath>
 #include <array>
+#include <cstdint>
 
 std::istream& operator>>(std::istream &in, std::vector<uint32_t> &time);
 

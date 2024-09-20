@@ -85,64 +85,6 @@ Tester::Result Tester::SetResAddedLogs(const QLoggingCategory &name(), bool resu
     return res;
 }
 
-void write_log(QString &data) {
-    QString cmd;
-    cmd.append("echo \'");
-    cmd.append(data);
-    cmd.append("\' >> ");
-    cmd.append(LOG);
-    system(qPrintable(cmd));
-}
-
-QString get_current_ip() {
-    QString res = "unknown ip";
-    QString cmd = "ifconfig end0 | grep \'inet addr:\' > current_ip";
-    QString ans;
-    QFile cur("current_ip");
-
-    int sys = system(qPrintable(cmd));
-    if (sys) {
-        return res;
-    }
-
-    if (cur.open(QIODevice::ReadOnly)) {
-        QByteArray data = cur.readAll();
-        res = QString(data);
-        if (res.contains("inet addr:")) {
-            res = res.replace("inet addr:", "");
-            res = res.remove(QChar(' '));
-            for (QChar c : res) {
-                if (c == 'B') {
-                    break;
-                } else {
-                    ans.append(c);
-                }
-            }
-            res = ans;
-        }
-    }
-
-    return res;
-}
-
-QString default_ip_target() {
-    QHostAddress address = QNetworkInterface::interfaceFromName("eth0").addressEntries().at(0).ip();
-    QString ip = address.toString();
-    if (address.isNull()) {
-        ip = "172.25.110.254";
-    } else {
-        int pos = ip.lastIndexOf(QChar('.'));
-        ip = ip.left(pos + 1);
-        ip.append(QString::number(254));
-    }
-
-    return ip;
-}
-
-void attention() {
-    system("aplay /usr/local/biosmart/sounds/ok.wav > /dev/null 2>&1");
-}
-
 int run_cmd(const char *cmd, char lines[][BUF_SIZ]) {
     FILE *fp;
     char path[BUF_SIZ];
@@ -937,17 +879,7 @@ int Tester::init()
     qCInfo(c_test);
     qCInfo(c_test) << "getting device ip";
     qCInfo(c_test) << "----------------------------------------";
-    // ip = get_current_ip();
 
-    if (verbose_logs) {
-        // qCInfo(c_test) << "test started at: " << QDateTime::currentDateTime().toString().toStdString() << std::endl;
-        QString cmd = "echo \'Test started: ";
-        cmd.append(QDateTime::currentDateTime().toString());
-        cmd.append("\n\'");
-        cmd.append(" > ");
-        cmd.append(LOG);
-        system(qPrintable(cmd));
-    }
 
     qCInfo(c_test);
     qCInfo(c_test) << "added gpio sysfs interfaces";
@@ -1281,15 +1213,6 @@ QString testValueToText(Tester::Result value) {
 
 void Tester::singleTestResult(QString name, Result value)
 {
-    if (verbose_logs) {
-        QString str = QDateTime::currentDateTime().toString();
-        str.prepend("[");
-        str.append("] ");
-        str.append(name);
-        str.append("\t\t\t");
-        str.append(testValueToText(value));
-        write_log(str);
-    }
     QVariantMap data;
     data["name"] = name;
     data["value"] = value;
