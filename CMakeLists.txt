@@ -1,8 +1,6 @@
 
 cmake_minimum_required(VERSION 3.5)
 
-set(CMAKE_TOOLCHAIN_FILE /home/alex/Project/diasom/buildroot/output/ds-rk3568-introdaction/host/share/buildroot/toolchainfile.cmake)
-
 project(expo_view)
 
 
