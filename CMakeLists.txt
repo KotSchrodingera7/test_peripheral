@@ -27,7 +27,30 @@ include_directories (${GSTREAMER_INCLUDE_DIRS})
 
 # find_package(pthread REQUIRED)
 
-add_executable(expo_view main.cpp 
+# execute_process(
+#   COMMAND git rev-parse --abbrev-ref HEAD
+#   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+#   OUTPUT_VARIABLE GIT_BRANCH
+#   OUTPUT_STRIP_TRAILING_WHITESPACE
+# )
+
+set(GIT_HASH "unknown")
+ 
+# find Git and if available set GIT_HASH variable
+find_package(Git QUIET)
+if(GIT_FOUND)
+  execute_process(
+    COMMAND ${GIT_EXECUTABLE} log -1 --pretty=format:%h
+    OUTPUT_VARIABLE GIT_HASH
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    ERROR_QUIET
+    )
+endif()
+ 
+message(STATUS "Git hash is ${GIT_HASH}")
+
+set(NAME_PROJECT "expo_view_${GIT_HASH}")
+add_executable(${NAME_PROJECT} main.cpp 
                         tester.cpp 
                         canbus.cpp
                         camera_gst.cpp 
@@ -37,6 +60,6 @@ add_executable(expo_view main.cpp
                         test_uart.cpp
                         logger.cpp)
 
-target_link_libraries(expo_view -lm -ldl Qt5::Core Qt5::Quick Qt5::Qml Qt5::Widgets ${GST_APP_LIBRARIES} ${GST_VIDEO_LIBRARIES})
-set_property(TARGET expo_view PROPERTY AUTOMOC ON)
+target_link_libraries(${NAME_PROJECT} -lm -ldl Qt5::Core Qt5::Quick Qt5::Qml Qt5::Widgets ${GST_APP_LIBRARIES} ${GST_VIDEO_LIBRARIES})
+set_property(TARGET ${NAME_PROJECT} PROPERTY AUTOMOC ON)
 
