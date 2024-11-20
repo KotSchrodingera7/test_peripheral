@@ -49,7 +49,7 @@ endif()
  
 message(STATUS "Git hash is ${GIT_HASH}")
 
-set(NAME_PROJECT "expo_view_${GIT_HASH}")
+set(NAME_PROJECT "expo_view")
 add_executable(${NAME_PROJECT} main.cpp 
                         tester.cpp 
                         canbus.cpp
