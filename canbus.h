@@ -4,6 +4,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <cstdint>
 
 #include <unistd.h>
 #include <net/if.h>
