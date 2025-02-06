@@ -353,15 +353,15 @@ int Tester::testEmmc()
         QString name = "emmc";
         singleTestResult(name, Result::Progress);
 
-        QString emmc_path = "/dev/mmcblk1";
+        QString emmc_path = "/dev/mmcblk0";
         QFile handler(emmc_path);
         if( handler.exists() ) {
-            if( QFile("/dev/mmcblk1p3").exists() ) {
+            if( QFile("/dev/mmcblk0p3").exists() ) {
                 result = CheckSpeedUsb(c_emmc, QString(map_cmd_fio.at("mmc").c_str()), 60);
             } else {
                 QFile type_system("check_filesystem");
 
-                int sys = system("fsck -N /dev/mmcblk1 | awk 'NR==2 {print $5}' > check_filesystem");
+                int sys = system("fsck -N /dev/mmcblk0 | awk 'NR==2 {print $5}' > check_filesystem");
 
                 if ( !sys ) {
                     if (type_system.open(QIODevice::ReadOnly)) {
@@ -369,12 +369,12 @@ int Tester::testEmmc()
                         std::string str_ = type_system.readAll().toStdString();
 
                         if( str_ != "fsck.ext4\n" ) {
-                            system("mkfs.ext4 /dev/mmcblk1");
+                            system("mkfs.ext4 /dev/mmcblk0");
                         }
                         if( !QFile("/media/fatfs").exists() ) {
                             system("mkdir /media/fatfs");
                         }
-                        system("mount /dev/mmcblk1 /media/fatfs/ > /dev/null 2>&1");
+                        system("mount /dev/mmcblk0 /media/fatfs/ > /dev/null 2>&1");
                         result = CheckSpeedUsb(c_emmc, QString(map_cmd_fio.at("usb").c_str()), 60);
                     } else {
                         qInfo(c_emmc) << "Can't open file";
@@ -402,15 +402,15 @@ int Tester::testMicrosd()
         QString name = "microsd";
         singleTestResult(name, Result::Progress);
 
-        QString usd_path = "/dev/mmcblk0";
+        QString usd_path = "/dev/mmcblk1";
         QFile handler(usd_path);
         if( handler.exists() ) {
-            if( QFile("/dev/mmcblk0p3").exists() ) {
+            if( QFile("/dev/mmcblk1p3").exists() ) {
                 result = CheckSpeedUsb(c_sd, QString(map_cmd_fio.at("mmc").c_str()), 10);
             }
         }
 
-        Result res = SetResAddedLogs(c_sd, result, "TEST Success", "Not find device of mmcblk0");
+        Result res = SetResAddedLogs(c_sd, result, "TEST Success", "Not find device of mmcblk1");
 
 
         singleTestResult(name, res);
@@ -594,11 +594,11 @@ int Tester::testCan()
         }
         usleep(50000);
 
-        if( system("ip link set can0 type can bitrate 125000 triple-sampling on > /dev/null 2>&1") ) {
+        if( system("ip link set can0 type can bitrate 1000000 > /dev/null 2>&1") ) {
             qCWarning(c_can0) << "Set bitrate with triple-sampling error";
         }
         usleep(50000);
-        if ( system("ip link set can1 type can bitrate 125000 triple-sampling on > /dev/null 2>&1") ) {
+        if ( system("ip link set can1 type can bitrate 1000000 > /dev/null 2>&1") ) {
             qCWarning(c_can1) << "Set bitrate with triple-sampling error";
         }
         usleep(50000);
